@@ -10,7 +10,6 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.http import require_POST
 
-from achievements.models import Criterion
 from audit.services import client_ip, log_action
 
 from . import ratelimit
@@ -55,8 +54,6 @@ def login_view(request):
     else:
         form = FormClass(request)
 
-    criteria = list(Criterion.objects.filter(is_active=True))
-    scale = [{"criterion": c, "points": c.max_points, "max": c.max_points, "percent": "100.0"} for c in criteria]
     return render(
         request,
         "accounts/login.html",
@@ -65,8 +62,6 @@ def login_view(request):
             "mode": mode,
             "locked": locked,
             "next": _safe_next(request) or "",
-            "scale": scale,
-            "scale_total": sum(c.max_points for c in criteria),
         },
     )
 

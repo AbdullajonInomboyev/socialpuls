@@ -44,7 +44,7 @@ class LoginTests(TestCase):
         self.assertEqual(str(u.profile.gpa), "4.68")
         self.assertFalse(u.has_usable_password())
         r = self.client.get(reverse("core:home"))
-        self.assertContains(r, "Salom, Hilola")
+        self.assertContains(r, "Xush kelibsiz, Hilola")
         self.assertContains(r, "9,36")  # GPA 4.68 / 5 x 10
 
     def test_student_wrong_hemis_password(self):

@@ -29,13 +29,13 @@
     {% endfor %}
   </ul>
   {% else %}
-  <div class="empty">{% icon "bell" %}<h3>Eslatmalar yo‘q</h3><p>Yangi xabar kelganda shu yerda ko‘rinadi.</p></div>
+  <div class="empty"><span class="tile tile-orange">{% icon "bell" %}</span><h3>Eslatmalar yo‘q</h3><p>Yangi xabar kelganda shu yerda ko‘rinadi.</p></div>
   {% endif %}
 </section>
 {% if page.has_other_pages %}
-<nav class="period-switch" style="margin-top:16px" aria-label="Sahifalar">
+<nav class="pager" aria-label="Sahifalar">
   {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">Oldingi</a>{% endif %}
-  <a aria-current="true">{{ page.number }} / {{ page.paginator.num_pages }}</a>
+  <span>{{ page.number }} / {{ page.paginator.num_pages }}</span>
   {% if page.has_next %}<a href="?page={{ page.next_page_number }}">Keyingi</a>{% endif %}
 </nav>
 {% endif %}

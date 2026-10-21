@@ -1,16 +1,15 @@
 {% extends "layouts/app.html" %}{% load ui %}
 {% block title %}Bosh sahifa{% endblock %}
-{% block crumb %}Bosh sahifa{% endblock %}
 {% block content %}
 <div class="page-head">
   <div>
-    <h1 class="page-title">Salom, {{ user.first_name|default:user.short_name }}</h1>
-    <p>{% if profile %}{{ profile.group.name|default:"Guruh ko‘rsatilmagan" }}, {{ profile.course|default:"?" }}-kurs, {{ profile.faculty.name|default:"" }}{% endif %}</p>
+    <h1 class="page-title">Xush kelibsiz, {{ user.first_name|default:user.short_name }}!</h1>
+    <p>{% if profile %}{{ profile.faculty.name|default:"" }}, {{ profile.group.name|default:"guruh ko‘rsatilmagan" }}, {{ profile.course|default:"?" }}-kurs{% endif %}</p>
   </div>
   {% if periods %}
   <form method="get" class="period-form" data-autosubmit>
-    <label for="davr">Baholash davri</label>
-    <select id="davr" name="davr" class="input">
+    <label for="davr">Davr</label>
+    <select id="davr" name="davr">
       {% regroup periods by year as by_year %}
       {% for y in by_year %}
       <optgroup label="{{ y.grouper.name }} o‘quv yili">
@@ -26,70 +25,48 @@
 </div>
 
 <div class="stack">
-  <section class="panel score-hero" aria-labelledby="score-title">
-    <div class="score-hero-top">
-      <div>
-        <h2 id="score-title" class="sr-only">Umumiy ball</h2>
-        <div class="score-big num">{{ total|points }}<small>/ 100</small></div>
-        <p class="score-caption">
-          {% if selected.semester %}{{ selected.semester }} bo‘yicha jami ball{% elif selected %}{{ selected.year.name }} o‘quv yili: semestrlar o‘rtachasi{% endif %}
-        </p>
-      </div>
-      {% if has_score %}
-      <div class="ranks">
-        {% if faculty_rank %}<div class="rank"><b class="num">{{ faculty_rank.0 }}<span class="subtle"> / {{ faculty_rank.1 }}</span></b><span>fakultetda</span></div>{% endif %}
-        {% if uni_rank %}<div class="rank"><b class="num">{{ uni_rank.0 }}<span class="subtle"> / {{ uni_rank.1 }}</span></b><span>universitetda</span></div>{% endif %}
-      </div>
-      {% endif %}
-    </div>
-    {% include "partials/puls.html" with rows=rows animate=True legend=True label="Ballaringizning mezonlar bo‘yicha taqsimoti" %}
-    {% if counts.returned %}
-    <div class="alert alert-info" role="status">{% icon "info" %}<span>{{ counts.returned }} ta yutug‘ingiz izoh bilan qaytarilgan. Tuzatib, qayta yuboring.</span></div>
-    {% elif counts.pending %}
-    <p class="subtle">{{ counts.pending }} ta yutuq tekshiruvda. Tasdiqlangach ball shu tasmaga qo‘shiladi.</p>
-    {% endif %}
+  <section class="stats" aria-label="Asosiy ko‘rsatkichlar">
+    <div class="stat"><span class="tile tile-orange">{% icon "coins" %}</span>
+      <div><div class="label">Jami ball</div><div class="value">{{ total|points }}<small>/ 100</small></div>
+      <div class="trend">{% if selected.semester %}{{ selected.semester }}{% elif selected %}Semestrlar o‘rtachasi{% endif %}</div></div></div>
+    <div class="stat"><span class="tile tile-purple">{% icon "trophy" %}</span>
+      <div><div class="label">Fakultetdagi o‘rin</div><div class="value">{% if faculty_rank %}{{ faculty_rank.0 }}<small>/ {{ faculty_rank.1 }}</small>{% else %}–{% endif %}</div></div></div>
+    <div class="stat"><span class="tile tile-blue">{% icon "building" %}</span>
+      <div><div class="label">Universitetdagi o‘rin</div><div class="value">{% if uni_rank %}{{ uni_rank.0 }}<small>/ {{ uni_rank.1 }}</small>{% else %}–{% endif %}</div></div></div>
+    <div class="stat"><span class="tile tile-green">{% icon "award" %}</span>
+      <div><div class="label">Tasdiqlangan yutuqlar</div><div class="value">{{ counts.approved }}</div>
+      <div class="trend">{% if counts.pending %}{{ counts.pending }} ta tekshiruvda{% else %}Tekshiruvda yutuq yo‘q{% endif %}</div></div></div>
   </section>
+
+  {% if counts.returned %}
+  <div class="alert alert-info" role="status">{% icon "info" %}<span>{{ counts.returned }} ta yutug‘ingiz izoh bilan qaytarilgan. Tuzatib, qayta yuboring.</span></div>
+  {% endif %}
 
   <div class="grid-2">
     <section class="panel" aria-labelledby="crit-title">
-      <div class="panel-head"><h2 id="crit-title">Mezonlar bo‘yicha</h2><span class="subtle">GPA har kirishda HEMIS’dan yangilanadi</span></div>
-      <table class="criteria">
-        <thead><tr><th scope="col">Mezon</th><th scope="col"><span class="sr-only">To‘lish darajasi</span></th><th scope="col" style="text-align:right">Ball</th></tr></thead>
-        <tbody>
+      <div class="panel-head"><h2 id="crit-title">Mezonlar bo‘yicha ballar</h2><span class="subtle">GPA har kirishda HEMIS’dan yangilanadi</span></div>
+      <div class="bars bars-animate">
         {% for r in rows %}
-          <tr>
-            <td class="c-name">{{ r.criterion.short_title }}<small>{{ r.criterion.get_input_mode_display }}</small></td>
-            <td class="c-bar"><div class="minibar{% if r.criterion.input_mode == 'auto' %} is-auto{% endif %}" style="--fill: {{ r.percent }}%"><i></i></div></td>
-            <td class="c-score">{{ r.points|points }} <span>/ {{ r.max }}</span></td>
-          </tr>
+        <div class="bar-row" style="--i: {{ forloop.counter0 }}">
+          <div class="name">{{ r.criterion.short_title }}<small>{{ r.criterion.get_input_mode_display }}</small></div>
+          <div class="bar{% if r.criterion.input_mode == 'auto' %} is-auto{% elif r.criterion.input_mode == 'manual' %} is-manual{% endif %}" style="--fill: {{ r.percent }}%" role="img" aria-label="{{ r.criterion.short_title }}: {{ r.points|points }} / {{ r.max }}"><i></i></div>
+          <div class="score">{{ r.points|points }} <span>/ {{ r.max }}</span></div>
+        </div>
         {% endfor %}
-        </tbody>
-      </table>
+      </div>
     </section>
 
     <div class="stack">
-      <section class="panel" aria-labelledby="recent-title">
-        <div class="panel-head"><h2 id="recent-title">Oxirgi yutuqlar</h2></div>
-        {% if recent %}
-        <ul class="list">
-          {% for a in recent %}
-          <li>
-            <div class="grow">
-              <div class="title">{{ a.title }}</div>
-              <div class="meta">{{ a.criterion.short_title }}, {{ a.event_date|date:"d.m.Y" }}</div>
-            </div>
-            {% if a.status == "approved" %}<span class="num" style="font-weight:600">+{{ a.points|points }}</span>{% endif %}
-            <span class="status status-{{ a.status }}">{{ a.get_status_display }}</span>
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <div class="empty">
-          {% icon "award" %}
-          <h3>Bu davrda yutuq yuklanmagan</h3>
-          <p>Yutuq yuklash bo‘limi keyingi bosqichda ochiladi. Tasdiqlangan har bir yutuq balingizga qo‘shiladi.</p>
+      <section class="panel" aria-labelledby="comp-title">
+        <div class="panel-head"><h2 id="comp-title">Ball tarkibi</h2></div>
+        <div class="donut-wrap">
+          <div class="donut" style="--ring: {{ composition.gradient }}" role="img" aria-label="Jami {{ total|points }} ball: {% for p in composition.parts %}{{ p.label }} {{ p.value|points }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+            <div class="center"><b>{{ total|points }}</b><span>100 balldan</span></div>
+          </div>
+          <ul class="legend">
+            {% for p in composition.parts %}<li><i style="background: {{ p.color }}"></i>{{ p.label }} <span><b>{{ p.value|points }}</b>/{{ p.max }}</span></li>{% endfor %}
+          </ul>
         </div>
-        {% endif %}
       </section>
 
       <section class="panel" aria-labelledby="notif-title">
@@ -97,9 +74,7 @@
         {% if notifications %}
         <ul class="list">
           {% for n in notifications %}
-          <li class="{% if not n.is_read %}unread{% endif %}">
-            <div class="grow"><div class="title">{{ n.title }}</div><div class="meta">{{ n.created_at|date:"d.m.Y H:i" }}</div></div>
-          </li>
+          <li class="{% if not n.is_read %}unread{% endif %}"><div class="grow"><div class="title">{{ n.title }}</div><div class="meta">{{ n.created_at|date:"d.m.Y H:i" }}</div></div></li>
           {% endfor %}
         </ul>
         {% else %}
@@ -108,5 +83,26 @@
       </section>
     </div>
   </div>
+
+  <section class="panel" aria-labelledby="recent-title">
+    <div class="panel-head"><h2 id="recent-title">Oxirgi yutuqlar</h2></div>
+    {% if recent %}
+    <ul class="list">
+      {% for a in recent %}
+      <li>
+        <span class="avatar tile-orange" aria-hidden="true">{% icon "award" %}</span>
+        <div class="grow">
+          <div class="title">{{ a.title }}</div>
+          <div class="chips" style="margin-top:6px"><span class="chip chip-orange">{{ a.criterion.short_title }}</span><span class="chip">{{ a.event_date|date:"d.m.Y" }}</span></div>
+        </div>
+        {% if a.status == "approved" %}<span class="pts">+{{ a.points|points }}</span>{% endif %}
+        <span class="status status-{{ a.status }}">{{ a.get_status_display }}</span>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty"><span class="tile tile-orange">{% icon "award" %}</span><h3>Bu davrda yutuq yo‘q</h3><p>Yutuq yuklash bo‘limi keyingi bosqichda ochiladi. Tasdiqlangan har bir yutuq balingizga qo‘shiladi.</p></div>
+    {% endif %}
+  </section>
 </div>
 {% endblock %}

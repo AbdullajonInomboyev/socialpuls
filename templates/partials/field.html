@@ -1,11 +1,14 @@
 {% load ui %}<div class="field{% if field.errors %} has-error{% endif %}">
-  <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+  <label for="{{ field.id_for_label }}"{% if with_icon %} class="sr-only"{% endif %}>{{ field.label }}</label>
   {% if field.field.widget.input_type == "password" %}
-  <div class="password-wrap">
+  <div class="password-wrap{% if with_icon %} input-icon{% endif %}">
+    {% if with_icon %}{% icon "lock" %}{% endif %}
     {{ field }}
-    <button type="button" class="toggle-pass" data-toggle-pass aria-label="Parolni ko'rsatish" aria-pressed="false">{% icon "eye" %}</button>
+    <button type="button" class="toggle-pass" data-toggle-pass aria-label="Parolni ko‘rsatish" aria-pressed="false">{% icon "eye" %}</button>
   </div>
+  {% elif with_icon %}
+  <div class="input-icon">{% icon "user" %}{{ field }}</div>
   {% else %}{{ field }}{% endif %}
-  {% if field.help_text %}<span class="hint" id="{{ field.id_for_label }}-hint">{{ field.help_text }}</span>{% endif %}
-  {% for e in field.errors %}<span class="error" id="{{ field.id_for_label }}-error">{{ e }}</span>{% endfor %}
+  {% if field.help_text %}<span class="hint">{{ field.help_text }}</span>{% endif %}
+  {% for e in field.errors %}<span class="error">{{ e }}</span>{% endfor %}
 </div>

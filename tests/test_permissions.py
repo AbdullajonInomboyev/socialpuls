@@ -37,7 +37,7 @@ class ScopeTests(TestCase):
     def test_student_dashboard_period_switch_and_pages(self):
         self.client.force_login(self.a)
         r = self.client.get(reverse("core:home") + f"?davr=y{self.s['year'].pk}")
-        self.assertContains(r, "semestrlar o‘rtachasi")
+        self.assertContains(r, "Semestrlar o‘rtachasi")
         for name in ("accounts:profile", "notifications:list"):
             self.assertEqual(self.client.get(reverse(name)).status_code, 200)
 

@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count, Q
+from django.http import HttpResponse
 from django.shortcuts import render
 
 from accounts.models import Role
@@ -78,6 +79,7 @@ def student_dashboard(request):
     counts = ach_qs.aggregate(
         pending=Count("id", filter=Q(status=Achievement.Status.PENDING)),
         returned=Count("id", filter=Q(status=Achievement.Status.RETURNED)),
+        approved=Count("id", filter=Q(status=Achievement.Status.APPROVED)),
     )
 
     return render(
@@ -90,6 +92,7 @@ def student_dashboard(request):
             "total": total if total is not None else Decimal("0"),
             "has_score": total is not None,
             "rows": rows,
+            "composition": _composition(rows),
             "faculty_rank": faculty_rank,
             "uni_rank": uni_rank,
             "recent": ach_qs[:6],
@@ -97,6 +100,27 @@ def student_dashboard(request):
             "notifications": user.notifications.all()[:4],
         },
     )
+
+
+COMPOSITION = [
+    ("upload", "Yutuqlar", "var(--orange)"),
+    ("manual", "Mas’ul bahosi", "var(--blue)"),
+    ("auto", "HEMIS GPA", "var(--purple)"),
+]
+
+
+def _composition(rows):
+    """Ball tarkibi halqasi uchun: baholash usuli bo'yicha yig'indi va conic-gradient qatori."""
+    parts, start, stops = [], 0.0, []
+    for mode, label, color in COMPOSITION:
+        value = sum((r["points"] for r in rows if r["criterion"].input_mode == mode), Decimal("0"))
+        maximum = sum(r["max"] for r in rows if r["criterion"].input_mode == mode)
+        end = start + float(value)
+        stops.append(f"{color} {start:.2f}% {end:.2f}%")
+        parts.append({"label": label, "color": color, "value": value, "max": maximum})
+        start = end
+    stops.append(f"var(--surface-2) {start:.2f}% 100%")
+    return {"parts": parts, "gradient": "conic-gradient(" + ", ".join(stops) + ")"}
 
 
 @staff_required
@@ -135,6 +159,12 @@ def _scope_label(user):
         names = list(user.tutor_groups.values_list("name", flat=True)[:4])
         return ", ".join(names) + ("..." if user.tutor_groups.count() > 4 else "") if names else "Guruh biriktirilmagan"
     return "Butun universitet"
+
+
+@login_required
+def ping(request):
+    """Foydalanuvchi sahifada faol bo'lsa, sessiya vaqtini yangilaydi (IdleTimeoutMiddleware)."""
+    return HttpResponse(status=204)
 
 
 def error_404(request, exception=None):

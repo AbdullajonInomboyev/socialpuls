@@ -65,31 +65,45 @@
     });
   });
 
-  // Puls tasmasi izohi
-  var tip = document.querySelector("[data-puls-tip]");
-  if (!tip) { tip = document.createElement("div"); tip.className = "puls-tip"; tip.setAttribute("role", "tooltip"); document.body.appendChild(tip); }
-  function showTip(seg) {
-    tip.textContent = seg.getAttribute("data-tip");
-    var r = seg.getBoundingClientRect();
-    tip.setAttribute("data-show", "true");
-    var w = tip.offsetWidth;
-    var left = Math.min(Math.max(8, r.left + r.width / 2 - w / 2), window.innerWidth - w - 8);
-    tip.style.left = left + "px";
-    tip.style.top = Math.max(8, r.top - tip.offsetHeight - 8) + "px";
-  }
-  function hideTip() { tip.setAttribute("data-show", "false"); }
-  document.querySelectorAll(".puls-seg[data-tip]").forEach(function (seg) {
-    seg.addEventListener("mouseenter", function () { showTip(seg); });
-    seg.addEventListener("focus", function () { showTip(seg); });
-    seg.addEventListener("mouseleave", hideTip);
-    seg.addEventListener("blur", hideTip);
-  });
-  window.addEventListener("scroll", hideTip, { passive: true });
-
   // Tanlov o'zgarganda formani yuborish (davr tanlash)
   document.querySelectorAll("form[data-autosubmit] select").forEach(function (sel) {
     sel.addEventListener("change", function () { sel.form.submit(); });
   });
+
+  // To'liq ekran
+  document.querySelectorAll("[data-fullscreen]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      if (!document.fullscreenElement) { if (root.requestFullscreen) root.requestFullscreen(); }
+      else if (document.exitFullscreen) document.exitFullscreen();
+    });
+  });
+
+  // Avto-chiqish taymeri: serverdagi IdleTimeoutMiddleware bilan bir xil vaqt.
+  var idleBox = document.querySelector("[data-idle]");
+  if (idleBox) {
+    var limit = parseInt(idleBox.getAttribute("data-idle"), 10) * 60;
+    var pingUrl = idleBox.getAttribute("data-ping");
+    var timerEl = idleBox.querySelector("[data-idle-timer]");
+    var lastActive = Date.now(), lastPing = Date.now();
+    var pad = function (n) { return (n < 10 ? "0" : "") + n; };
+    var tick = function () {
+      var left = Math.max(0, limit - Math.floor((Date.now() - lastActive) / 1000));
+      timerEl.textContent = pad(Math.floor(left / 60)) + ":" + pad(left % 60);
+      if (left === 0) { window.location.reload(); }
+    };
+    var activity = function () {
+      lastActive = Date.now();
+      if (Date.now() - lastPing > 60000) {
+        lastPing = Date.now();
+        fetch(pingUrl, { credentials: "same-origin" }).catch(function () {});
+      }
+    };
+    ["click", "keydown", "scroll", "mousemove", "touchstart"].forEach(function (ev) {
+      window.addEventListener(ev, activity, { passive: true });
+    });
+    tick();
+    setInterval(tick, 1000);
+  }
 
   // Toast xabarlari
   document.querySelectorAll("[data-toast]").forEach(function (t) {

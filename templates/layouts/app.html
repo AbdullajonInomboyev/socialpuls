@@ -4,7 +4,7 @@
 <div class="app">
   <aside class="rail" id="rail" data-rail aria-label="Asosiy menyu">
     {% include "partials/brand.html" %}
-    <nav class="nav" aria-label="Bo'limlar">
+    <nav class="nav" aria-label="Bo‘limlar">
       {% for title, items in nav_groups %}
         {% if title %}<div class="nav-group">{{ title }}</div>{% endif %}
         {% for item in items %}
@@ -15,28 +15,34 @@
         {% endfor %}
       {% endfor %}
     </nav>
-    <div class="rail-foot">{% if current_semester %}Joriy davr: {{ current_semester }}{% endif %}</div>
+    {% if site.idle_timeout_minutes %}
+    <div class="session-card" data-idle="{{ site.idle_timeout_minutes }}" data-ping="{% url 'core:ping' %}">
+      <span class="ico">{% icon "timer" %}</span>
+      <div><b>Tizim vaqti</b><span>Avto-chiqish: <span class="timer" data-idle-timer aria-live="off">{{ site.idle_timeout_minutes }}:00</span></span></div>
+    </div>
+    {% endif %}
   </aside>
   <div class="rail-backdrop" data-rail-backdrop></div>
 
   <div class="main">
     <header class="topbar">
       <button class="icon-btn only-mobile" type="button" data-rail-toggle aria-controls="rail" aria-expanded="false" aria-label="Menyuni ochish">{% icon "menu" %}</button>
-      <div class="crumb">{% block crumb %}{% endblock %}</div>
+      <div class="crumb">{% block crumb %}{% if user.is_student %}Talaba kabineti{% else %}Boshqaruv paneli{% endif %}{% endblock %}</div>
       <div class="spacer"></div>
-      {% if current_semester %}<span class="semester-pill">{{ current_semester }}</span>{% endif %}
+      <button class="icon-btn only-desktop" type="button" data-fullscreen aria-label="To‘liq ekran">{% icon "expand" %}</button>
       <button class="icon-btn" type="button" data-theme-toggle aria-label="Rang rejimini almashtirish">{% icon "moon" %}</button>
-      <a class="icon-btn" href="{% url 'notifications:list' %}" aria-label="Eslatmalar{% if unread_count %}, {{ unread_count }} ta o'qilmagan{% endif %}">
+      <a class="icon-btn" href="{% url 'notifications:list' %}" aria-label="Eslatmalar{% if unread_count %}, {{ unread_count }} ta o‘qilmagan{% endif %}">
         {% icon "bell" %}{% if unread_count %}<span class="dot">{{ unread_count }}</span>{% endif %}
       </a>
+      <span class="role-pill">{% icon "shield" %}{{ user.get_role_display }}</span>
       <div class="user-menu" data-menu>
-        <button type="button" data-menu-button aria-haspopup="true" aria-expanded="false">
-          {% if user.profile.image_url %}<img class="avatar" src="{{ user.profile.image_url }}" alt="">{% else %}<span class="avatar" aria-hidden="true">{{ user.initials }}</span>{% endif %}
+        <button type="button" data-menu-button aria-haspopup="true" aria-expanded="false" aria-label="Hisob menyusi">
           <span class="who"><b>{{ user.short_name }}</b><span>{{ user.get_role_display }}</span></span>
+          {% if user.profile.image_url %}<img class="avatar" src="{{ user.profile.image_url }}" alt="">{% else %}<span class="avatar" aria-hidden="true">{{ user.initials }}</span>{% endif %}
         </button>
         <div class="menu" data-menu-panel>
           <a href="{% url 'accounts:profile' %}">{% icon "user" %}Profil</a>
-          {% if not user.is_student %}<a href="{% url 'accounts:password_change' %}">{% icon "lock" %}Parolni o'zgartirish</a>{% endif %}
+          {% if not user.is_student %}<a href="{% url 'accounts:password_change' %}">{% icon "lock" %}Parolni o‘zgartirish</a>{% endif %}
           <hr>
           <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
             <button type="submit">{% icon "logout" %}Chiqish</button>
@@ -56,5 +62,4 @@
   {% endfor %}
 </nav>
 {% endif %}
-<div class="puls-tip" data-puls-tip role="tooltip"></div>
 {% endblock %}

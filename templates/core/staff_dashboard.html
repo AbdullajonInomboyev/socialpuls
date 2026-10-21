@@ -1,10 +1,9 @@
 {% extends "layouts/app.html" %}{% load ui humanize %}
 {% block title %}Bosh sahifa{% endblock %}
-{% block crumb %}Boshqaruv paneli{% endblock %}
 {% block content %}
 <div class="page-head">
   <div>
-    <h1 class="page-title">Xush kelibsiz, {{ user.first_name|default:user.username }}</h1>
+    <h1 class="page-title">Xush kelibsiz, {{ user.first_name|default:user.username }}!</h1>
     <p>{{ user.get_role_display }}: {{ scope_label }}{% if semester %}. Ko‘rsatkichlar {{ semester }} bo‘yicha.{% endif %}</p>
   </div>
 </div>
@@ -14,31 +13,37 @@
 {% endif %}
 
 <div class="stack">
-  <section class="facts" aria-label="Asosiy ko‘rsatkichlar">
-    <div class="fact"><span>Talabalar</span><b class="num">{{ student_count|intcomma }}</b></div>
-    <div class="fact"><span>Tekshiruvni kutmoqda</span><b class="num">{{ pending_count|intcomma }}</b></div>
-    <div class="fact"><span>O‘rtacha ball</span><b class="num">{{ avg_score|points }}</b></div>
-    <div class="fact"><span>Kamida bitta yutug‘i tasdiqlangan</span><b class="num">{{ active_count|intcomma }}</b></div>
+  <section class="stats" aria-label="Asosiy ko‘rsatkichlar">
+    <div class="stat"><span class="tile tile-purple">{% icon "users" %}</span><div><div class="label">Talabalar</div><div class="value">{{ student_count|intcomma }}</div></div></div>
+    <div class="stat"><span class="tile tile-orange">{% icon "hourglass" %}</span><div><div class="label">Tekshiruvni kutmoqda</div><div class="value">{{ pending_count|intcomma }}</div></div></div>
+    <div class="stat"><span class="tile tile-blue">{% icon "chart" %}</span><div><div class="label">O‘rtacha ball</div><div class="value">{{ avg_score|points }}<small>/ 100</small></div></div></div>
+    <div class="stat"><span class="tile tile-green">{% icon "award" %}</span><div><div class="label">Faol talabalar</div><div class="value">{{ active_count|intcomma }}</div><div class="trend">kamida 1 yutug‘i tasdiqlangan</div></div></div>
   </section>
 
   <section class="panel" aria-labelledby="top-title">
-    <div class="panel-head"><h2 id="top-title">Eng faol talabalar</h2><span class="subtle">Joriy semestr</span></div>
+    <div class="panel-head"><h2 id="top-title">Eng faol talabalar</h2><span class="subtle">Joriy semestr reytingi</span></div>
     {% if top_rows %}
-    <ul class="list">
-      {% for t in top_rows %}
-      <li>
-        <span class="num subtle" style="width:24px">{{ forloop.counter }}</span>
-        <div class="grow">
-          <div class="title">{{ t.score.student.full_name }}</div>
-          <div class="meta">{{ t.score.student.profile.group.name|default:"" }}{% if t.score.faculty %}, {{ t.score.faculty.name }}{% endif %}</div>
-          <div style="margin-top:8px; max-width:420px">{% include "partials/puls.html" with rows=t.rows size="sm" %}</div>
+    <div class="person-list">
+      {% for t in top_rows %}{% with s=t.score st=t.score.student %}
+      <article class="person">
+        <span class="place{% if forloop.counter <= 3 %} top{% endif %}">{{ forloop.counter }}</span>
+        {% if st.profile.image_url %}<img class="avatar" src="{{ st.profile.image_url }}" alt="">{% else %}<span class="avatar" aria-hidden="true">{{ st.initials }}</span>{% endif %}
+        <div style="min-width:0">
+          <div class="name">{{ st.full_name }}</div>
+          <div class="chips">
+            {% if s.faculty %}<span class="chip chip-orange">{% icon "building" %}{{ s.faculty.name }}</span>{% endif %}
+            {% if st.profile.group %}<span class="chip chip-orange">{% icon "id" %}{{ st.profile.group.name }}</span>{% endif %}
+            {% if st.profile.course %}<span class="chip chip-blue">{% icon "layers" %}{{ st.profile.course }}-kurs</span>{% endif %}
+            <span class="chip chip-green">{% icon "award" %}{{ s.approved_count }} ta yutuq</span>
+          </div>
         </div>
-        <b class="num">{{ t.score.total|points }}</b>
-      </li>
-      {% endfor %}
-    </ul>
+        <span class="status status-active person-status">Faol</span>
+        <div class="total">{{ s.total|points }}<small>ball</small></div>
+      </article>
+      {% endwith %}{% endfor %}
+    </div>
     {% else %}
-    <div class="empty">{% icon "chart" %}<h3>Hali ball hisoblanmagan</h3><p>Talabalar tizimga kirib, yutuqlari tasdiqlangach reyting shu yerda ko‘rinadi.</p></div>
+    <div class="empty"><span class="tile tile-blue">{% icon "chart" %}</span><h3>Hali ball hisoblanmagan</h3><p>Talabalar tizimga kirib, yutuqlari tasdiqlangach reyting shu yerda ko‘rinadi.</p></div>
     {% endif %}
   </section>
 </div>

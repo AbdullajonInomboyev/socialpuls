@@ -1,4 +1,4 @@
-{% load static %}<a class="brand" href="{% url 'core:home' %}">
-  <img class="brand-mark" src="{% static 'img/mark.svg' %}" alt="" width="40" height="40">
-  <span class="brand-name">{{ site.system_name }}<small>{{ site.university_name }}</small></span>
+{% load static ui %}<a class="brand" href="{% url 'core:home' %}" aria-label="{{ site.system_name }}, bosh sahifa">
+  <img class="brand-mark" src="{% static 'img/logo.svg' %}" alt="" width="42" height="42">
+  <span class="brand-name">{{ site.system_name|brand_first }} <b>{{ site.system_name|brand_rest }}</b></span>
 </a>

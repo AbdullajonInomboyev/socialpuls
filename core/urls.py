@@ -6,4 +6,5 @@ app_name = "core"
 
 urlpatterns = [
     path("", views.home, name="home"),
+    path("api/ping/", views.ping, name="ping"),
 ]

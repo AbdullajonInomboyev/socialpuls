@@ -9,10 +9,15 @@ class StudentLoginForm(forms.Form):
     login = forms.CharField(
         label="HEMIS login (talaba ID)",
         max_length=32,
-        widget=forms.TextInput(attrs={"autocomplete": "username", "inputmode": "numeric", "autofocus": True}),
+        widget=forms.TextInput(
+            attrs={"autocomplete": "username", "inputmode": "numeric", "autofocus": True, "placeholder": "HEMIS login (talaba ID)"}
+        ),
     )
     password = forms.CharField(
-        label="HEMIS paroli", strip=False, max_length=128, widget=forms.PasswordInput(attrs={"autocomplete": "current-password"})
+        label="HEMIS paroli",
+        strip=False,
+        max_length=128,
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password", "placeholder": "Parol"}),
     )
 
     def __init__(self, request=None, *args, **kwargs):
@@ -40,10 +45,12 @@ class StudentLoginForm(forms.Form):
 
 class StaffLoginForm(forms.Form):
     username = forms.CharField(
-        label="Login", max_length=150, widget=forms.TextInput(attrs={"autocomplete": "username", "autofocus": True})
+        label="Login",
+        max_length=150,
+        widget=forms.TextInput(attrs={"autocomplete": "username", "autofocus": True, "placeholder": "Login"}),
     )
     password = forms.CharField(
-        label="Parol", strip=False, widget=forms.PasswordInput(attrs={"autocomplete": "current-password"})
+        label="Parol", strip=False, widget=forms.PasswordInput(attrs={"autocomplete": "current-password", "placeholder": "Parol"})
     )
 
     def __init__(self, request=None, *args, **kwargs):
