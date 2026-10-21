@@ -169,6 +169,10 @@ SITE_URL = env("SITE_URL", default="http://localhost:8000")
 
 # --- Telegram ---
 TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
+TELEGRAM_BOT_USERNAME = env("TELEGRAM_BOT_USERNAME", default="")
+# Webhook manzilidagi maxfiy qism: https://SAYT/telegram/webhook/<TELEGRAM_WEBHOOK_SECRET>/
+TELEGRAM_WEBHOOK_SECRET = env("TELEGRAM_WEBHOOK_SECRET", default="")
+TELEGRAM_TIMEOUT = env.int("TELEGRAM_TIMEOUT", default=5)
 
 # --- HEMIS ---
 # live: haqiqiy API; mock: faqat DEBUG da, internetsiz sinash uchun test talabalar.

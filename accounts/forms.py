@@ -82,12 +82,5 @@ class StaffPasswordResetForm(PasswordResetForm):
 class NotificationSettingsForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ["email", "notify_email", "telegram_chat_id", "notify_telegram"]
-        labels = {"email": "Email manzil", "telegram_chat_id": "Telegram chat ID"}
-        help_texts = {"telegram_chat_id": "Botga /start yozing, bot sizga chat ID ni yuboradi."}
-
-    def clean_telegram_chat_id(self):
-        value = (self.cleaned_data.get("telegram_chat_id") or "").strip()
-        if value and not value.lstrip("-").isdigit():
-            raise forms.ValidationError("Chat ID faqat raqamlardan iborat bo'ladi.")
-        return value
+        fields = ["email", "notify_email", "notify_telegram"]
+        labels = {"email": "Email manzil"}

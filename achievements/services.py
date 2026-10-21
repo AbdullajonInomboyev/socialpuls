@@ -8,6 +8,7 @@ from django.utils import timezone
 from accounts.models import REVIEWER_ROLES, Role
 from audit.services import log_action
 from core.permissions import scoped_students
+from notifications.delivery import notify
 from notifications.models import Notification
 from ratings.services import recalculate
 from structure.models import Group
@@ -168,12 +169,9 @@ def review(request, achievement_id, action, points=None, comment="", version=Non
         recalculate(a.student, a.semester)
 
     title, body = NOTICE[event]
-    Notification.objects.create(
-        recipient=a.student,
-        kind=Notification.Kind.REVIEW,
-        title=title,
-        body=body.format(title=a.title, points=_fmt(a.points), comment=comment),
-        link=reverse("achievements:detail", args=[a.pk]),
+    notify(
+        a.student, title, body.format(title=a.title, points=_fmt(a.points), comment=comment),
+        link=reverse("achievements:detail", args=[a.pk]), kind=Notification.Kind.REVIEW,
     )
     log_action(
         request, f"achievement.{action}", f"{a.student.full_name}: “{a.title}” ({ReviewEvent.Action(event).label})",

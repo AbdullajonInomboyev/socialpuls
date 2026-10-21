@@ -8,4 +8,5 @@ urlpatterns = [
     path("", views.notification_list, name="list"),
     path("<int:pk>/oqildi/", views.mark_read, name="read"),
     path("hammasi-oqildi/", views.mark_all_read, name="read_all"),
+    path("telegram/uzish/", views.telegram_unlink, name="telegram_unlink"),
 ]

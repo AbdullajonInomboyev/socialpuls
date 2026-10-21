@@ -1,0 +1,55 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}Xodimlar{% endblock %}
+{% block crumb %}Xodimlar{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Xodimlar</h1>
+    <p>Fakultet mas’ullari, tyutorlar, rahbariyat va moderatorlar hisoblari. Talabalar HEMIS orqali kiradi va bu yerda ko‘rinmaydi.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'core:manage_staff_new' %}">{% icon "user-plus" %}Xodim qo‘shish</a>
+</div>
+
+<form method="get" class="filters panel" role="search">
+  <div class="field grow">
+    <label for="s-q" class="sr-only">Qidirish</label>
+    <div class="input-icon">{% icon "search" %}<input id="s-q" type="search" name="q" value="{{ q }}" placeholder="Ism, login yoki email"></div>
+  </div>
+  <div class="field">
+    <label for="s-rol" class="sr-only">Rol</label>
+    <select id="s-rol" name="rol"><option value="">Barcha rollar</option>
+      {% for v, l in roles %}<option value="{{ v }}"{% if role == v %} selected{% endif %}>{{ l }}</option>{% endfor %}
+    </select>
+  </div>
+  <button class="btn btn-secondary" type="submit">{% icon "filter" %}Saralash</button>
+</form>
+
+<section class="panel">
+  {% if page.object_list %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">Xodim</th><th scope="col">Rol</th><th scope="col">Doira</th><th scope="col">Oxirgi kirish</th><th scope="col">Holat</th><th></th></tr></thead>
+      <tbody>{% for u in page.object_list %}
+        <tr>
+          <th scope="row"><div class="person-cell"><span class="avatar avatar-round" aria-hidden="true">{{ u.initials }}</span>
+            <div><div>{{ u.full_name|default:u.username }}</div><div class="subtle">{{ u.username }}{% if u.email %} · {{ u.email }}{% endif %}</div></div></div></th>
+          <td><span class="chip{% if u.role == 'leadership' %} chip-orange{% elif u.role == 'moderator' %} chip-purple{% elif u.role == 'faculty_admin' %} chip-blue{% else %} chip-green{% endif %}">{{ u.get_role_display }}</span></td>
+          <td>{% if u.role == "faculty_admin" %}{{ u.faculty.name|default:"–" }}{% elif u.role == "tutor" %}{{ u.tutor_groups.all|join:", "|truncatechars:60|default:"–" }}{% else %}Butun universitet{% endif %}</td>
+          <td class="num subtle">{{ u.last_login|date:"d.m.Y H:i"|default:"Hali kirmagan" }}</td>
+          <td>{% if u.is_active %}<span class="status status-active">Faol</span>{% else %}<span class="status status-draft">O‘chirilgan</span>{% endif %}</td>
+          <td class="actions">
+            <a class="btn btn-ghost" href="{% url 'core:manage_staff_edit' u.pk %}">{% icon "edit" %}Tahrirlash</a>
+            {% if u.is_active and u.email and u != user %}
+            <form method="post" action="{% url 'core:manage_staff_reset' u.pk %}">{% csrf_token %}<button class="btn btn-ghost" type="submit" title="Emailga parol tiklash havolasi yuborish">{% icon "lock" %}<span class="sr-only">Parol tiklash havolasi</span></button></form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}</tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><span class="tile tile-blue">{% icon "users" %}</span><h3>Xodim topilmadi</h3><p>Qidiruv shartini o‘zgartiring yoki yangi xodim qo‘shing.</p></div>
+  {% endif %}
+</section>
+{% include "partials/pager.html" %}
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}HEMIS{% endblock %}
+{% block crumb %}HEMIS integratsiyasi{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">HEMIS integratsiyasi</h1>
+    <p>Fakultet, yo‘nalish, guruh va talabalar ro‘yxati HEMIS’dan olinadi. Talaba HEMIS orqali kirganda uning ma’lumoti alohida ham yangilanadi.</p>
+  </div>
+</div>
+
+<div class="grid-halves">
+  <section class="panel" aria-labelledby="sync-title">
+    <div class="panel-head"><h2 id="sync-title">Sinxronizatsiya</h2>
+      {% if mode == "live" %}<span class="chip chip-green">{% icon "check" %}Ishchi rejim</span>{% else %}<span class="chip chip-purple">{% icon "info" %}Sinov rejimi</span>{% endif %}
+    </div>
+    <div class="panel-body">
+      <dl class="dl">
+        <dt>API manzili</dt><dd class="num">{{ api_url|default:"–" }}</dd>
+        <dt>Token</dt><dd>{% if token_set %}O‘rnatilgan{% else %}O‘rnatilmagan{% endif %}</dd>
+      </dl>
+      {% if mode != "live" %}
+      <div class="alert alert-info" style="margin-top:16px">{% icon "info" %}<div>Sinov rejimida ma’lumot HEMIS’ga ulanmasdan, ichki namunaviy javobdan olinadi. Ishchi rejim uchun <code>.env</code> faylida <code>HEMIS_MODE=live</code> va <code>HEMIS_API_TOKEN</code> ni o‘rnating.</div></div>
+      {% endif %}
+      <form method="post" data-busy-form class="form-actions" style="margin-top:16px">
+        {% csrf_token %}<input type="hidden" name="op" value="sync">
+        <span class="subtle">Har kecha avtomatik ham ishlaydi (<code>hemis_sync</code>).</span>
+        <button class="btn btn-primary" type="submit">{% icon "refresh" %}Hozir sinxronlash</button>
+      </form>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="excel-title">
+    <div class="panel-head"><h2 id="excel-title">Excel’dan import</h2>
+      <a class="btn btn-ghost" href="{% url 'core:manage_hemis_template' %}">{% icon "download" %}Shablon</a></div>
+    <div class="panel-body">
+      <p class="subtle" style="margin-bottom:16px">HEMIS vaqtincha ishlamaganda talabalar ro‘yxatini shablon bo‘yicha yuklang. Avval fayl tekshiriladi va natija ko‘rsatiladi, tasdiqlaganingizdan keyingina yoziladi.</p>
+      <form method="post" enctype="multipart/form-data" data-busy-form>
+        {% csrf_token %}<input type="hidden" name="op" value="excel">
+        <div class="field">
+          <label for="xl-file">Fayl (.xlsx, 15 MB gacha)</label>
+          <input id="xl-file" class="input" type="file" name="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+        </div>
+        <div class="form-actions"><button class="btn btn-secondary" type="submit">{% icon "upload" %}Tekshirish</button></div>
+      </form>
+    </div>
+  </section>
+</div>
+
+{% if preview %}
+<section class="panel" aria-labelledby="pv-title" style="margin-top:20px">
+  <div class="panel-head"><h2 id="pv-title">Tekshiruv natijasi: {{ preview.name }}</h2>
+    <span class="subtle">{{ preview.count }} ta to‘g‘ri qator, {{ preview.error_count }} ta xato</span></div>
+  {% if preview.errors %}
+  <div class="panel-body">
+    <div class="alert alert-error" role="alert">{% icon "alert" %}<div>
+      <b>Xatolarni tuzatmaguncha import qilinmaydi.</b>
+      <ul class="plain-list">{% for e in preview.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+      {% if preview.error_count > preview.errors|length %}<div>… va yana {{ preview.error_count|add:"-50" }} ta.</div>{% endif %}
+    </div></div>
+  </div>
+  {% endif %}
+  {% if preview.rows %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">HEMIS ID</th><th scope="col">F.I.Sh.</th><th scope="col">Fakultet</th><th scope="col">Guruh</th><th scope="col" class="c">Kurs</th><th scope="col" class="c">GPA</th></tr></thead>
+      <tbody>{% for r in preview.rows %}
+        <tr><td class="num">{{ r.sid }}</td><td>{{ r.last }} {{ r.first }} {{ r.middle }}</td><td>{{ r.faculty }}</td><td>{{ r.group }}</td><td class="c">{{ r.course }}</td><td class="c">{{ r.gpa|default:"–" }}</td></tr>
+      {% endfor %}</tbody>
+    </table>
+  </div>
+  {% if preview.count > 15 %}<p class="subtle panel-body">Birinchi 15 qator ko‘rsatildi.</p>{% endif %}
+  {% endif %}
+  {% if not preview.errors and preview.count %}
+  <div class="panel-body">
+    <form method="post" data-busy-form class="form-actions">
+      {% csrf_token %}<input type="hidden" name="op" value="apply">
+      <span class="subtle">Mavjud talabalar HEMIS ID bo‘yicha yangilanadi, yangilari qo‘shiladi. Fakultet va guruh nomi bo‘yicha topiladi yoki yaratiladi.</span>
+      <button class="btn btn-primary" type="submit">{% icon "tick" %}{{ preview.count }} talabani import qilish</button>
+    </form>
+  </div>
+  {% endif %}
+</section>
+{% endif %}
+
+<section class="panel" aria-labelledby="runs-title" style="margin-top:20px">
+  <div class="panel-head"><h2 id="runs-title">So‘nggi ishga tushirishlar</h2></div>
+  {% if runs %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">Vaqt</th><th scope="col">Turi</th><th scope="col">Holat</th><th scope="col" class="c">Yangi</th><th scope="col" class="c">Yangilangan</th><th scope="col">Kim</th></tr></thead>
+      <tbody>{% for r in runs %}
+        <tr>
+          <td class="num">{{ r.started_at|date:"d.m.Y H:i" }}</td>
+          <td>{{ r.get_kind_display }}</td>
+          <td><span class="status status-{% if r.status == 'success' %}approved{% elif r.status == 'failed' %}rejected{% else %}pending{% endif %}">{{ r.get_status_display }}</span>
+            {% if r.error %}<div class="subtle">{{ r.error|truncatechars:120 }}</div>{% endif %}</td>
+          <td class="c">{{ r.created_count }}</td><td class="c">{{ r.updated_count }}</td>
+          <td>{{ r.triggered_by.short_name|default:"Avtomatik" }}</td>
+        </tr>
+      {% endfor %}</tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty compact"><p>Hali sinxronizatsiya bajarilmagan.</p></div>
+  {% endif %}
+</section>
+{% endblock %}

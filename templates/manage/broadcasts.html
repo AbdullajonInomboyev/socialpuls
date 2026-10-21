@@ -1,0 +1,57 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}Ommaviy xabar{% endblock %}
+{% block crumb %}Ommaviy xabar{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Ommaviy xabar</h1>
+    <p>Doirangizdagi talabalarga e’lon yuboring. Xabar tizimdagi eslatmalarga tushadi, xohlasangiz email va Telegram orqali ham ketadi.</p>
+  </div>
+</div>
+<div class="grid-2">
+  <form method="post" class="panel" novalidate data-busy-form aria-labelledby="bc-title">
+    {% csrf_token %}
+    <div class="panel-head"><h2 id="bc-title">Yangi xabar</h2></div>
+    <div class="panel-body">
+      {% if form.non_field_errors %}<div class="alert alert-error" role="alert">{% icon "alert" %}<div>{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}</div></div>{% endif %}
+      {% if confirm_count %}<div class="alert alert-warning" role="status">{% icon "alert" %}<div><b>Xabar {{ confirm_count }} talabaga yuboriladi.</b> Matn va qabul qiluvchilarni tekshiring, so‘ng “Tasdiqlab yuborish” ni bosing.</div></div>{% endif %}
+      {% include "partials/field.html" with field=form.title %}
+      {% include "partials/field.html" with field=form.body %}
+      <div class="form-grid">
+        {% if form.faculty %}{% include "partials/field.html" with field=form.faculty %}{% endif %}
+        {% include "partials/field.html" with field=form.course %}
+      </div>
+      {% if form.groups %}{% include "partials/field.html" with field=form.groups %}{% endif %}
+      <label class="check field">{{ form.only_inactive }} <span>{{ form.only_inactive.label }}</span></label>
+      <label class="check field">{{ form.via_telegram }} <span>{{ form.via_telegram.label }}</span></label>
+      <label class="check field">{{ form.via_email }} <span>{{ form.via_email.label }}</span></label>
+      {{ form.confirm }}
+    </div>
+    <div class="form-actions panel-foot">
+      <span class="subtle">Kuniga ko‘pi bilan 10 ta xabar.</span>
+      {% if confirm_count %}<button class="btn btn-primary" type="submit">{% icon "send" %}Tasdiqlab yuborish</button>
+      {% else %}<button class="btn btn-primary" type="submit">{% icon "users" %}Qabul qiluvchilarni hisoblash</button>{% endif %}
+    </div>
+  </form>
+
+  <section class="panel" aria-labelledby="hist-title">
+    <div class="panel-head"><h2 id="hist-title">Yuborilganlar</h2></div>
+    {% if history %}
+    <ul class="list bc-list">
+      {% for b in history %}
+      <li>
+        <span class="tile tile-orange">{% icon "megaphone" %}</span>
+        <div class="grow">
+          <b>{{ b.title }}</b>
+          <div class="subtle">{{ b.created_at|date:"d.m.Y H:i" }} · {{ b.recipient_count }} talaba{% if b.sender != user %} · {{ b.sender.short_name }}{% endif %}</div>
+          <div class="chips">{% if b.via_telegram %}<span class="chip chip-blue">Telegram</span>{% endif %}{% if b.via_email %}<span class="chip chip-purple">Email</span>{% endif %}</div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty compact"><p>Hali xabar yuborilmagan.</p></div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

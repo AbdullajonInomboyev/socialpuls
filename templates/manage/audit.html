@@ -1,0 +1,49 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}Amallar jurnali{% endblock %}
+{% block crumb %}Amallar jurnali{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Amallar jurnali</h1>
+    <p>Kirishlar, baholash qarorlari, eksportlar, sozlama va xodim o‘zgarishlari. Yozuvlarni tizim orqali o‘chirib yoki tahrirlab bo‘lmaydi.</p>
+  </div>
+</div>
+
+<form method="get" class="filters panel" role="search">
+  <div class="field grow">
+    <label for="a-q" class="sr-only">Qidirish</label>
+    <div class="input-icon">{% icon "search" %}<input id="a-q" type="search" name="q" value="{{ f.q }}" placeholder="Tavsif, login yoki IP"></div>
+  </div>
+  <div class="field">
+    <label for="a-amal" class="sr-only">Amal turi</label>
+    <select id="a-amal" name="amal"><option value="">Barcha amallar</option>
+      {% for v, l in groups %}<option value="{{ v }}"{% if f.amal == v %} selected{% endif %}>{{ l }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="field"><label for="a-dan" class="sr-only">Dan</label><input id="a-dan" type="date" name="dan" value="{{ f.dan }}" title="Sanadan"></div>
+  <div class="field"><label for="a-gacha" class="sr-only">Gacha</label><input id="a-gacha" type="date" name="gacha" value="{{ f.gacha }}" title="Sanagacha"></div>
+  <button class="btn btn-secondary" type="submit">{% icon "filter" %}Saralash</button>
+</form>
+
+<section class="panel">
+  {% if page.object_list %}
+  <div class="table-wrap">
+    <table class="table audit-table">
+      <thead><tr><th scope="col">Vaqt</th><th scope="col">Kim</th><th scope="col">Amal</th><th scope="col">Tavsif</th><th scope="col">IP</th></tr></thead>
+      <tbody>{% for e in page.object_list %}
+        <tr>
+          <td class="num nowrap">{{ e.created_at|date:"d.m.Y H:i:s" }}</td>
+          <td>{% if e.actor %}{{ e.actor.short_name|default:e.actor.username }}<div class="subtle">{{ e.actor.get_role_display }}</div>{% else %}<span class="subtle">Tizim</span>{% endif %}</td>
+          <td><code class="code-chip">{{ e.action }}</code></td>
+          <td>{{ e.description }}</td>
+          <td class="num subtle nowrap">{{ e.ip_address|default:"–" }}</td>
+        </tr>
+      {% endfor %}</tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><span class="tile tile-blue">{% icon "scroll" %}</span><h3>Yozuv topilmadi</h3><p>Saralash shartlarini o‘zgartirib ko‘ring.</p></div>
+  {% endif %}
+</section>
+{% include "partials/pager.html" %}
+{% endblock %}

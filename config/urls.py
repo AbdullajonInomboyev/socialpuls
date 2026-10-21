@@ -2,6 +2,8 @@ from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 
+from notifications import views as notif_views
+
 admin.site.site_header = "Social Puls boshqaruvi"
 admin.site.site_title = "Social Puls"
 
@@ -9,6 +11,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("accounts.urls")),
     path("eslatmalar/", include("notifications.urls")),
+    path("telegram/webhook/<str:secret>/", notif_views.telegram_webhook, name="telegram_webhook"),
     path("", include("achievements.urls")),
     path("", include("ratings.urls")),
     path("", include("core.urls")),

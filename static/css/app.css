@@ -640,3 +640,37 @@ p { margin: 0; }
 .nowrap { white-space: nowrap; }
 .rating-table .crit-col { min-width: 56px; padding-left: 6px; padding-right: 6px; }
 .top-list .grow { flex: 1; min-width: 0; }
+.tg-box { display: flex; align-items: center; gap: var(--s-3); margin-top: var(--s-5); padding: var(--s-4); border: 1px solid var(--line); border-radius: var(--r-md); }
+.tg-box .tile { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; flex: none; }
+.tg-box .tile svg { width: 20px; height: 20px; }
+.tg-box .grow { flex: 1; min-width: 0; display: grid; }
+
+/* ---------- 4-bosqich: boshqaruv sahifalari ---------- */
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--s-4); }
+.person-cell { display: flex; gap: var(--s-3); align-items: center; font-weight: 600; }
+.person-cell .subtle { font-weight: 400; font-size: var(--t-xs); }
+.table td.actions { white-space: nowrap; text-align: right; }
+.table td.actions form { display: inline; }
+.nowrap { white-space: nowrap; }
+.code-chip { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; padding: 2px 6px; border-radius: 6px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
+.plain-list { margin: 6px 0 0; padding-left: 18px; }
+.plain-list li { margin: 2px 0; }
+.toggle-list { list-style: none; margin: var(--s-2) 0 0; padding: 0; }
+.toggle-list li { display: flex; align-items: center; justify-content: space-between; gap: var(--s-4); padding: var(--s-3) 0; border-top: 1px solid var(--line); }
+.toggle-list label { display: grid; gap: 2px; font-size: var(--t-sm); cursor: pointer; }
+.year-block + .year-block { border-top: 1px solid var(--line); }
+.year-head { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-4) var(--s-5) 0; }
+.sem-list > li { border-top: 0; }
+.sem-list .tile, .bc-list .tile { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none; }
+.sem-list .tile svg, .bc-list .tile svg { width: 20px; height: 20px; }
+.sem-actions { display: flex; gap: var(--s-2); flex-wrap: wrap; justify-content: flex-end; }
+.bc-list .chips { margin-top: 6px; }
+.audit-table td:nth-child(4) { min-width: 280px; }
+[data-role-scope][hidden] { display: none; }
+@media (max-width: 720px) {
+  .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .sem-list > li { flex-wrap: wrap; }
+  .sem-actions { width: 100%; justify-content: flex-start; }
+}
+.panel-foot { padding: var(--s-4) var(--s-5); border-top: 1px solid var(--line); }
+@media (max-width: 720px) { .panel-foot { padding: var(--s-3) var(--s-4); } }

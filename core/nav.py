@@ -35,14 +35,24 @@ def build_nav(user):
     else:
         main.append(_item("Yutuqlar", "achievements:queue", "award"))
     main.append(_item("Eslatmalar", "notifications:list", "bell", key="notifications"))
+    main.append(_item("Ommaviy xabar", "core:manage_broadcasts", "megaphone"))
     groups = [("", main)]
     groups.append(("Reyting", [
         _item("Reyting", "ratings:rating", "list", match="/reyting/"),
         _item("TOP-10", "ratings:top10", "trophy"),
         _item("Tahlil", "ratings:analytics", "chart"),
     ]))
-    if user.role == Role.LEADERSHIP or user.is_superuser:
-        groups.append(("Sozlamalar", [_item("Mezonlar", "achievements:criteria", "settings", match="/sozlamalar/mezonlar/")]))
+    if user.role in (Role.LEADERSHIP, Role.MODERATOR) or user.is_superuser:
+        manage = []
+        if user.role == Role.LEADERSHIP or user.is_superuser:
+            manage.append(_item("Mezonlar", "achievements:criteria", "layers", match="/sozlamalar/mezonlar/"))
+        manage += [
+            _item("HEMIS", "core:manage_hemis", "database", match="/boshqaruv/hemis/"),
+            _item("Xodimlar", "core:manage_staff", "users", match="/boshqaruv/xodimlar/"),
+            _item("Tizim sozlamalari", "core:manage_settings", "settings"),
+            _item("Amallar jurnali", "core:manage_audit", "scroll"),
+        ]
+        groups.append(("Boshqaruv", manage))
     account = [_item("Profil", "accounts:profile", "user")]
     if user.is_superuser:
         account.append(_item("Django admin", "admin:index", "shield"))

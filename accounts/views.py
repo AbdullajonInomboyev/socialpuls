@@ -85,7 +85,12 @@ def profile_view(request):
         messages.success(request, "Sozlamalar saqlandi.")
         return redirect("accounts:profile")
     profile = getattr(user, "profile", None) if user.is_student else None
-    return render(request, "accounts/profile.html", {"form": form, "profile": profile})
+    from notifications import telegram
+
+    return render(
+        request, "accounts/profile.html",
+        {"form": form, "profile": profile, "telegram_link": telegram.link_url(user), "telegram_ready": telegram.is_configured()},
+    )
 
 
 class PasswordResetView(auth_views.PasswordResetView):

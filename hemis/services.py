@@ -80,7 +80,7 @@ def upsert_group(data, faculty, specialty):
 
 
 @transaction.atomic
-def upsert_student(data):
+def upsert_student(data, recalc=True):
     """HEMIS talaba obyektidan User + StudentProfile yaratadi yoki yangilaydi. (user, created) qaytaradi."""
     sid = str(data.get("student_id_number") or "").strip()
     if not sid:
@@ -128,7 +128,7 @@ def upsert_student(data):
         defaults["gpa_synced_at"] = now
     StudentProfile.objects.update_or_create(user=user, defaults=defaults)
 
-    semester = Semester.current()
+    semester = Semester.current() if recalc else None
     if semester is not None:
         from ratings.services import recalculate
 

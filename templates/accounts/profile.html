@@ -40,10 +40,23 @@
         {% csrf_token %}
         {% include "partials/field.html" with field=form.email %}
         <label class="check field">{{ form.notify_email }} <span>{{ form.notify_email.label }}</span></label>
-        {% include "partials/field.html" with field=form.telegram_chat_id %}
         <label class="check field">{{ form.notify_telegram }} <span>{{ form.notify_telegram.label }}</span></label>
         <button class="btn btn-primary" type="submit">Sozlamalarni saqlash</button>
       </form>
+      <div class="tg-box">
+        <span class="tile tile-blue">{% icon "send" %}</span>
+        <div class="grow">
+          <b>Telegram</b>
+          {% if user.telegram_chat_id %}<span class="subtle">Ulangan. Xabarlar bot orqali keladi.</span>
+          {% elif telegram_link %}<span class="subtle">Botni oching va “Start” ni bosing, hisobingiz avtomatik ulanadi.</span>
+          {% else %}<span class="subtle">Telegram bot hali sozlanmagan.</span>{% endif %}
+        </div>
+        {% if user.telegram_chat_id %}
+        <form method="post" action="{% url 'notifications:telegram_unlink' %}">{% csrf_token %}<button class="btn btn-ghost" type="submit">Uzish</button></form>
+        {% elif telegram_link %}
+        <a class="btn btn-soft-blue" href="{{ telegram_link }}" target="_blank" rel="noopener">Telegramni ulash</a>
+        {% endif %}
+      </div>
     </div>
   </section>
 </div>

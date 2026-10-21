@@ -206,6 +206,26 @@
     recount();
   }
 
+  // ---------- Qaytarib bo'lmaydigan amallar uchun tasdiq ----------
+  document.querySelectorAll("form[data-confirm]").forEach(function (f) {
+    f.addEventListener("submit", function (e) {
+      if (!window.confirm(f.getAttribute("data-confirm"))) e.preventDefault();
+    });
+  });
+
+  // ---------- Xodim formasi: rolga qarab fakultet yoki guruhlar maydoni ----------
+  var staffForm = document.querySelector("[data-staff-form]");
+  if (staffForm) {
+    var roleSel = staffForm.querySelector("select[name=role]");
+    var syncScope = function () {
+      staffForm.querySelectorAll("[data-role-scope]").forEach(function (box) {
+        box.hidden = box.getAttribute("data-role-scope") !== roleSel.value;
+      });
+    };
+    roleSel.addEventListener("change", syncScope);
+    syncScope();
+  }
+
   // Toast xabarlari
   document.querySelectorAll("[data-toast]").forEach(function (t) {
     var close = function () { t.remove(); };

@@ -63,6 +63,47 @@ client_max_body_size 60m;
 * Ochiq statistika (OTM sayti uchun): `GET /api/ochiq/statistika/`, JSON, 10 daqiqa keshlanadi, `Tizim sozlamalari`da
   o‘chirsa bo‘ladi. TOP-10 da faqat familiya va ism bosh harfi beriladi.
 
+## Integratsiyalar va boshqaruv (4-bosqich)
+
+* `Boshqaruv → HEMIS` (moderator, rahbariyat): fakultet, yo‘nalish, guruh va talabalarni qo‘lda sinxronlash, so‘nggi
+  ishga tushirishlar tarixi. Bir vaqtda faqat bitta sinxronizatsiya ishlaydi (kesh qulfi; production’da umumiy kesh,
+  masalan Redis, `CACHE_URL` orqali kerak).
+* Excel import: shablonni yuklab oling, to‘ldiring, yuklang. Fayl avval tekshiriladi va natija ko‘rsatiladi; xatosiz
+  bo‘lsa “import qilish” tugmasi chiqadi. Tasdiqlashgacha fayl maxfiy papkada (`PRIVATE_MEDIA_ROOT/imports/`) turadi.
+* `Xodimlar`: xodim yaratish va tahrirlash, rolga qarab fakultet yoki guruhlar biriktirish, parol tiklash havolasi.
+  Parol berilmasa, xodim emailiga parol o‘rnatish havolasi yuboriladi. Moderator rahbariyat hisobini yarata olmaydi va
+  tahrirlay olmaydi; hech kim o‘z hisobini bu yerda o‘zgartira olmaydi.
+* `Tizim sozlamalari`: nom, aloqa, sessiya muddati, talabalar yuklashi, oylik eslatma, ochiq statistika, texnik ishlar
+  rejimi; yangi o‘quv yili (ikki semestr bilan), joriy semestrni almashtirish va semestrni yopish. Tekshirilmagan yutuq
+  bo‘lsa, yopish alohida tasdiq talab qiladi. Yopilgan semestr qayta ochilmaydi.
+* `Amallar jurnali`: qidiruv (tavsif, login, IP), amal turi va sana bo‘yicha saralash. Faqat o‘qish uchun.
+* `Ommaviy xabar` (barcha xodimlar): faqat o‘z doirasidagi talabalarga; avval qabul qiluvchilar soni ko‘rsatiladi,
+  keyin tasdiqlanadi. Kuniga 10 ta xabar chegarasi.
+* Bildirishnomalar tizim ichida doim yaratiladi; email va Telegram foydalanuvchi sozlamasi yoqilgan va kanal sozlangan
+  bo‘lsa, tranzaksiya tugagach yuboriladi. Tashqi xizmat xatosi asosiy amalni to‘xtatmaydi, logga yoziladi.
+
+### Telegram bot
+
+1. @BotFather’da bot yarating, `.env` ga `TELEGRAM_BOT_TOKEN`, `TELEGRAM_BOT_USERNAME`, `TELEGRAM_WEBHOOK_SECRET` yozing.
+2. Webhook’ni o‘rnating (bir marta):
+
+```bash
+curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
+  -d "url=https://puls.namdu.uz/telegram/webhook/$TELEGRAM_WEBHOOK_SECRET/" \
+  -d "secret_token=$TELEGRAM_WEBHOOK_SECRET" -d 'allowed_updates=["message"]'
+```
+
+3. Foydalanuvchi `Profil → Telegramni ulash` ni bosadi, bot ochiladi, “Start” hisobni ulaydi (havola 30 daqiqa amal qiladi).
+
+### Rejalashtirilgan vazifalar (cron)
+
+```cron
+# Har kecha 02:30 da HEMIS sinxronizatsiyasi
+30 2 * * *  cd /srv/socialpuls && .venv/bin/python manage.py hemis_sync >> logs/cron.log 2>&1
+# Har oyning 1-kuni 09:00 da o‘tgan oyda yutuq yuklamaganlarga eslatma (oyiga bir marta, takrorlanmaydi)
+0 9 1 * *   cd /srv/socialpuls && .venv/bin/python manage.py send_monthly_reminders >> logs/cron.log 2>&1
+```
+
 ## Testlar
 
 ```bash
