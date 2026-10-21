@@ -1,3 +1,4 @@
+import os
 import uuid
 from decimal import Decimal
 
@@ -6,17 +7,26 @@ from django.core.files.storage import FileSystemStorage
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Q
-from django.utils.functional import LazyObject
+from django.utils.deconstruct import deconstructible
 
 
-class PrivateStorage(LazyObject):
-    """Ochiq MEDIA dan tashqaridagi maxfiy papka (URL bermaydi)."""
+@deconstructible(path="achievements.models.PrivateStorage")
+class PrivateStorage(FileSystemStorage):
+    """Ochiq MEDIA dan tashqaridagi maxfiy papka. URL bermaydi, fayllar faqat ruxsat tekshiruvidan keyin beriladi.
 
-    def _setup(self):
-        self._wrapped = FileSystemStorage(location=settings.PRIVATE_MEDIA_ROOT, base_url=None)
+    Joylashuv har safar sozlamadan o'qiladi, shuning uchun testlarda vaqtinchalik papkaga almashtirish mumkin.
+    """
 
-    def deconstruct(self):
-        return ("achievements.models.PrivateStorage", [], {})
+    def __init__(self):
+        super().__init__(base_url=None)
+
+    @property
+    def base_location(self):
+        return settings.PRIVATE_MEDIA_ROOT
+
+    @property
+    def location(self):
+        return os.path.abspath(self.base_location)
 
 
 private_storage = PrivateStorage()

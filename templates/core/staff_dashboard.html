@@ -15,7 +15,7 @@
 <div class="stack">
   <section class="stats" aria-label="Asosiy ko‘rsatkichlar">
     <div class="stat"><span class="tile tile-purple">{% icon "users" %}</span><div><div class="label">Talabalar</div><div class="value">{{ student_count|intcomma }}</div></div></div>
-    <div class="stat"><span class="tile tile-orange">{% icon "hourglass" %}</span><div><div class="label">Tekshiruvni kutmoqda</div><div class="value">{{ pending_count|intcomma }}</div></div></div>
+    <a class="stat stat-link" href="{% url 'achievements:queue' %}"><span class="tile tile-orange">{% icon "hourglass" %}</span><div><div class="label">Tekshiruvni kutmoqda</div><div class="value">{{ pending_count|intcomma }}</div><div class="trend">Navbatni ochish →</div></div></a>
     <div class="stat"><span class="tile tile-blue">{% icon "chart" %}</span><div><div class="label">O‘rtacha ball</div><div class="value">{{ avg_score|points }}<small>/ 100</small></div></div></div>
     <div class="stat"><span class="tile tile-green">{% icon "award" %}</span><div><div class="label">Faol talabalar</div><div class="value">{{ active_count|intcomma }}</div><div class="trend">kamida 1 yutug‘i tasdiqlangan</div></div></div>
   </section>

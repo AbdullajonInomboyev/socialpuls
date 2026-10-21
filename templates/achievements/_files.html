@@ -1,0 +1,19 @@
+{% load ui %}{% if files %}
+<div class="previews">
+  {% for f in files %}
+  <figure class="preview">
+    <a class="preview-media" href="{% url 'achievements:file' f.pk %}" target="_blank" rel="noopener" aria-label="{{ f.original_name }}ni yangi oynada ochish">
+      {% if f.is_image %}<img src="{% url 'achievements:file' f.pk %}" alt="{{ f.original_name }}" loading="lazy">
+      {% else %}<span class="pdf-thumb">{% icon "file" %}<b>PDF</b></span>{% endif %}
+    </a>
+    <figcaption>
+      <span class="fname" title="{{ f.original_name }}">{{ f.original_name }}</span>
+      <span class="subtle">{{ f.size|filesize }}</span>
+      <a class="icon-btn sm" href="{% url 'achievements:file' f.pk %}?yuklab=1" aria-label="Yuklab olish">{% icon "download" %}</a>
+    </figcaption>
+  </figure>
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty compact"><p>Hujjat biriktirilmagan.</p></div>
+{% endif %}

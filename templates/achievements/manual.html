@@ -1,0 +1,59 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}Qo‘lda baholash{% endblock %}
+{% block crumb %}Qo‘lda baholash{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Qo‘lda baholash</h1>
+    <p>{% for c in criteria %}{{ c.short_title }} ({{ c.max_points }} ball){% if not forloop.last %} va {% endif %}{% endfor %} mezonlari talaba yuklamaydi, ularni mas’ul qo‘yadi.{% if semester %} Davr: {{ semester }}.{% endif %}</p>
+  </div>
+  {% if groups|length > 1 %}
+  <form method="get" class="period-form" data-autosubmit>
+    <label for="guruh">Guruh</label>
+    <select id="guruh" name="guruh">{% for g in groups %}<option value="{{ g.pk }}"{% if g == group %} selected{% endif %}>{{ g.name }}</option>{% endfor %}</select>
+    <noscript><button class="btn btn-secondary" type="submit">Ochish</button></noscript>
+  </form>
+  {% endif %}
+</div>
+
+{% if not semester %}
+<div class="alert alert-warning" role="status">{% icon "alert" %}<span>Joriy semestr belgilanmagan. Moderator semestrni belgilagach baholash ochiladi.</span></div>
+{% elif semester.is_closed %}
+<div class="alert alert-warning" role="status">{% icon "lock" %}<span>Semestr yopilgan, ballarni o‘zgartirib bo‘lmaydi.</span></div>
+{% elif not groups %}
+<div class="empty panel"><span class="tile tile-blue">{% icon "users" %}</span><h3>Sizga guruh biriktirilmagan</h3><p>Guruhlar biriktirilgach shu yerda talabalar ro‘yxati chiqadi.</p></div>
+{% elif not rows %}
+<div class="empty panel"><span class="tile tile-blue">{% icon "users" %}</span><h3>Guruhda talaba yo‘q</h3><p>Talabalar HEMIS orqali tizimga birinchi marta kirganda ro‘yxatga qo‘shiladi.</p></div>
+{% else %}
+<form method="post" class="panel" data-busy-form>
+  {% csrf_token %}
+  <div class="panel-head">
+    <h2>{{ group.name }} <span class="subtle">· {{ rows|length }} talaba</span></h2>
+    <span class="subtle">To‘ldirilgan: {{ filled }} / {{ total_cells }}. Bo‘sh katak = ball qo‘yilmagan.</span>
+  </div>
+  <div class="table-wrap">
+    <table class="table score-table">
+      <thead><tr><th scope="col">#</th><th scope="col">Talaba</th>{% for c in criteria %}<th scope="col" class="num-col">{{ c.short_title }}<small>0 – {{ c.max_points }}</small></th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td class="subtle num">{{ forloop.counter }}</td>
+          <th scope="row"><span class="t-name">{{ r.s.full_name }}</span><span class="subtle num">{{ r.s.hemis_id }}</span></th>
+          {% for cell in r.cells %}
+          <td class="num-col{% if cell.error %} has-error{% endif %}">
+            <input class="score-input" type="text" inputmode="decimal" name="{{ cell.key }}" value="{{ cell.value }}" aria-label="{{ r.s.full_name }}: {{ cell.c.short_title }}" data-max="{{ cell.c.max_points }}" autocomplete="off">
+            {% if cell.error %}<span class="error">{{ cell.error }}</span>{% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="form-actions sticky-actions">
+    <span class="subtle">Kasr son kiritish mumkin, masalan 4,5. Saqlangach jami ball darhol qayta hisoblanadi.</span>
+    <button class="btn btn-primary" type="submit">{% icon "tick" %}Saqlash</button>
+  </div>
+</form>
+{% endif %}
+{% endblock %}

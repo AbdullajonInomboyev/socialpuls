@@ -59,8 +59,8 @@
 
   // Forma yuborilganda tugmani band qilish (ikki marta bosilmasin)
   document.querySelectorAll("form[data-busy-form]").forEach(function (form) {
-    form.addEventListener("submit", function () {
-      var btn = form.querySelector("button[type=submit]");
+    form.addEventListener("submit", function (e) {
+      var btn = e.submitter || form.querySelector("button[type=submit]");
       if (btn) { btn.setAttribute("aria-busy", "true"); setTimeout(function () { btn.disabled = true; }, 0); }
     });
   });
@@ -104,6 +104,87 @@
     tick();
     setInterval(tick, 1000);
   }
+
+
+  // ---------- Yutuq formasi: mezon tanlanganda darajalar ----------
+  var levelsEl = document.getElementById("levels-data");
+  var grid = document.querySelector("[data-crit-grid]");
+  if (levelsEl && grid) {
+    var levels = JSON.parse(levelsEl.textContent || "{}");
+    var wrap = document.querySelector("[data-level-wrap]");
+    var select = document.querySelector("[data-level-select]");
+    var fullNote = document.querySelector("[data-full-note]");
+    var syncLevels = function () {
+      var picked = grid.querySelector("input:checked");
+      var list = picked ? (levels[picked.value] || []) : [];
+      var keep = select.getAttribute("data-selected") || select.value;
+      while (select.options.length > 1) select.remove(1);
+      list.forEach(function (lv) {
+        var o = document.createElement("option");
+        o.value = lv[0];
+        o.textContent = lv[1] + " (" + lv[2].replace(/\.?0+$/, "").replace(".", ",") + " ball)";
+        if (lv[0] === keep) o.selected = true;
+        select.appendChild(o);
+      });
+      select.setAttribute("data-selected", "");
+      wrap.hidden = list.length === 0;
+      if (fullNote) fullNote.hidden = !(picked && picked.closest(".crit-card").classList.contains("is-full"));
+    };
+    grid.addEventListener("change", syncLevels);
+    syncLevels();
+  }
+
+  // ---------- Fayl tanlash: ro'yxat, hajm va tur bo'yicha oldindan ogohlantirish ----------
+  var fileInput = document.querySelector("[data-file-input]");
+  if (fileInput) {
+    var zone = fileInput.closest("[data-dropzone]");
+    var preview = document.querySelector("[data-file-preview]");
+    var maxMb = parseInt(fileInput.getAttribute("data-max-mb"), 10) || 10;
+    var okExt = /\.(pdf|jpe?g|png|webp)$/i;
+    var human = function (n) { return n >= 1048576 ? (n / 1048576).toFixed(1).replace(".", ",") + " MB" : Math.max(1, Math.round(n / 1024)) + " KB"; };
+    var render = function () {
+      preview.textContent = "";
+      Array.prototype.forEach.call(fileInput.files, function (f) {
+        var li = document.createElement("li");
+        var name = document.createElement("span");
+        name.className = "fname";
+        name.textContent = f.name;
+        var info = document.createElement("span");
+        info.className = "subtle";
+        var problem = !okExt.test(f.name) ? "turi mos emas" : (f.size > maxMb * 1048576 ? maxMb + " MB dan katta" : "");
+        info.textContent = problem ? human(f.size) + ", " + problem : human(f.size);
+        if (problem) li.className = "bad";
+        li.appendChild(name);
+        li.appendChild(info);
+        preview.appendChild(li);
+      });
+    };
+    fileInput.addEventListener("change", render);
+    ["dragenter", "dragover"].forEach(function (ev) { zone.addEventListener(ev, function () { zone.classList.add("is-over"); }); });
+    ["dragleave", "drop"].forEach(function (ev) { zone.addEventListener(ev, function () { zone.classList.remove("is-over"); }); });
+  }
+
+  // ---------- Tekshiruv: daraja tugmasi ballni to'ldiradi ----------
+  document.querySelectorAll("[data-fill-points]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var input = btn.closest("form").querySelector("input[name=points]");
+      input.value = btn.getAttribute("data-fill-points").replace(/\.?0+$/, "");
+      document.querySelectorAll("[data-fill-points]").forEach(function (b) { b.classList.toggle("is-picked", b === btn); });
+      input.focus();
+    });
+  });
+
+  // ---------- Qo'lda baholash: noto'g'ri qiymatni darhol belgilash ----------
+  document.querySelectorAll(".score-input").forEach(function (input) {
+    var max = parseFloat(input.getAttribute("data-max"));
+    var check = function () {
+      var v = input.value.trim().replace(",", ".");
+      var bad = v !== "" && (isNaN(Number(v)) || Number(v) < 0 || Number(v) > max);
+      input.classList.toggle("is-bad", bad);
+      input.setAttribute("aria-invalid", bad ? "true" : "false");
+    };
+    input.addEventListener("input", check);
+  });
 
   // Toast xabarlari
   document.querySelectorAll("[data-toast]").forEach(function (t) {

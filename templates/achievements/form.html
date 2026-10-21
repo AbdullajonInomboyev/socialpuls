@@ -1,0 +1,95 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}{% if achievement %}Yutuqni tahrirlash{% else %}Yutuq qo‘shish{% endif %}{% endblock %}
+{% block crumb %}Yutuqlarim{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <a class="back" href="{% if achievement %}{% url 'achievements:detail' achievement.pk %}{% else %}{% url 'achievements:my_list' %}{% endif %}">{% icon "arrow-left" %}Orqaga</a>
+    <h1 class="page-title">{% if achievement %}Yutuqni tahrirlash{% else %}Yangi yutuq{% endif %}</h1>
+    <p>{{ semester }}. Yutuq mas’ul tomonidan tekshirilgach ball qo‘shiladi.</p>
+  </div>
+</div>
+
+{% if achievement.status == "returned" and achievement.reviewer_comment %}
+<div class="alert alert-info" role="status">{% icon "message" %}<span><b>Mas’ul izohi:</b> {{ achievement.reviewer_comment }}</span></div>
+{% endif %}
+
+<form method="post" enctype="multipart/form-data" class="ach-form" data-busy-form novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}<div class="alert alert-error" role="alert">{% icon "alert" %}<div>{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}</div></div>{% endif %}
+
+  <section class="panel">
+    <div class="panel-head"><h2 id="crit-label"><span class="step">1</span>Mezonni tanlang</h2><span class="subtle">Qavs ichida: shu semestrda to‘plangan ball</span></div>
+    <div class="panel-body">
+      <div class="crit-grid" role="radiogroup" aria-labelledby="crit-label" data-crit-grid>
+        {% for card in criteria_cards %}
+        <label class="crit-card{% if card.full %} is-full{% endif %}">
+          <input type="radio" name="criterion" value="{{ card.c.pk }}" {% if form.criterion.value|stringformat:"s" == card.c.pk|stringformat:"s" %}checked{% endif %} required>
+          <span class="tile tile-orange">{% icon card.c|criterion_icon %}</span>
+          <span class="crit-text">
+            <b>{{ card.c.short_title }}</b>
+            <small>{{ card.got|points }} / {{ card.c.max_points }} ball{% if card.full %}, to‘lgan{% endif %}</small>
+          </span>
+          <span class="crit-check" aria-hidden="true">{% icon "tick" %}</span>
+        </label>
+        {% endfor %}
+      </div>
+      {% for e in form.criterion.errors %}<p class="error-text">{{ e }}</p>{% endfor %}
+      <p class="subtle crit-full-note" data-full-note hidden>Bu mezonda maksimal ball to‘plangan. Yangi yutuq yuklashingiz mumkin, lekin jami ball oshmaydi.</p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2><span class="step">2</span>Yutuq haqida</h2></div>
+    <div class="panel-body">
+      <div class="field-row">
+        {% include "partials/field.html" with field=form.title %}
+        {% include "partials/field.html" with field=form.event_date %}
+      </div>
+      <div data-level-wrap{% if not form.level.value %} hidden{% endif %}>
+        <div class="field{% if form.level.errors %} has-error{% endif %}">
+          <label for="{{ form.level.id_for_label }}">{{ form.level.label }}</label>
+          <select name="level" id="{{ form.level.id_for_label }}" data-level-select data-selected="{{ form.level.value|default:'' }}">
+            <option value="">Daraja tanlanmagan</option>
+          </select>
+          <span class="hint">Mas’ul yakuniy ballni hujjatga qarab belgilaydi.</span>
+          {% for e in form.level.errors %}<span class="error">{{ e }}</span>{% endfor %}
+        </div>
+      </div>
+      {% include "partials/field.html" with field=form.description %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head"><h2><span class="step">3</span>Tasdiqlovchi hujjatlar</h2><span class="subtle">PDF, JPG, PNG, WEBP. Har biri {{ max_mb }} MB gacha, jami {{ max_files }} ta</span></div>
+    <div class="panel-body">
+      {% if achievement and achievement.files.exists %}
+      <ul class="file-list">
+        {% for f in achievement.files.all %}
+        <li>
+          <span class="file-ico">{% if f.is_image %}{% icon "image" %}{% else %}{% icon "file" %}{% endif %}</span>
+          <a href="{% url 'achievements:file' f.pk %}" target="_blank" rel="noopener">{{ f.original_name }}</a>
+          <span class="subtle">{{ f.size|filesize }}</span>
+          <label class="check remove"><input type="checkbox" name="remove_files" value="{{ f.pk }}"{% if f.pk|stringformat:"s" in form.remove_files.value %} checked{% endif %}>O‘chirish</label>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      <label class="dropzone{% if form.files.errors %} has-error{% endif %}" data-dropzone>
+        <input type="file" name="files" multiple accept="{{ accept }}" data-max-mb="{{ max_mb }}" data-file-input>
+        <span class="tile tile-orange">{% icon "upload" %}</span>
+        <b>Fayllarni shu yerga tashlang yoki tanlang</b>
+        <span class="subtle">Sertifikat, diplom, ma’lumotnoma yoki tadbir surati</span>
+      </label>
+      <ul class="file-list" data-file-preview aria-live="polite"></ul>
+      {% for e in form.files.errors %}<p class="error-text">{{ e }}</p>{% endfor %}
+    </div>
+  </section>
+
+  <div class="form-actions">
+    <button class="btn btn-secondary" type="submit" name="intent" value="draft">Qoralama sifatida saqlash</button>
+    <button class="btn btn-primary" type="submit" name="intent" value="submit">{% icon "send" %}Tekshiruvga yuborish</button>
+  </div>
+</form>
+{{ levels_json|json_script:"levels-data" }}
+{% endblock %}

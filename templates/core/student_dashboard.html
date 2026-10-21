@@ -22,6 +22,7 @@
     <noscript><button class="btn btn-secondary" type="submit">Ko‘rsatish</button></noscript>
   </form>
   {% endif %}
+  <a class="btn btn-primary" href="{% url 'achievements:create' %}">{% icon "plus" %}Yutuq qo‘shish</a>
 </div>
 
 <div class="stack">
@@ -39,7 +40,7 @@
   </section>
 
   {% if counts.returned %}
-  <div class="alert alert-info" role="status">{% icon "info" %}<span>{{ counts.returned }} ta yutug‘ingiz izoh bilan qaytarilgan. Tuzatib, qayta yuboring.</span></div>
+  <div class="alert alert-info" role="status">{% icon "info" %}<span>{{ counts.returned }} ta yutug‘ingiz izoh bilan qaytarilgan. <a href="{% url 'achievements:my_list' %}?holat=returned">Tuzatib, qayta yuboring</a>.</span></div>
   {% endif %}
 
   <div class="grid-2">
@@ -85,15 +86,15 @@
   </div>
 
   <section class="panel" aria-labelledby="recent-title">
-    <div class="panel-head"><h2 id="recent-title">Oxirgi yutuqlar</h2></div>
+    <div class="panel-head"><h2 id="recent-title">Oxirgi yutuqlar</h2><a href="{% url 'achievements:my_list' %}" class="subtle">Hammasi</a></div>
     {% if recent %}
-    <ul class="list">
+    <ul class="list ach-list">
       {% for a in recent %}
       <li>
         <span class="avatar tile-orange" aria-hidden="true">{% icon "award" %}</span>
         <div class="grow">
-          <div class="title">{{ a.title }}</div>
-          <div class="chips" style="margin-top:6px"><span class="chip chip-orange">{{ a.criterion.short_title }}</span><span class="chip">{{ a.event_date|date:"d.m.Y" }}</span></div>
+          <a class="title stretched" href="{% url 'achievements:detail' a.pk %}">{{ a.title }}</a>
+          <div class="chips"><span class="chip chip-orange">{{ a.criterion.short_title }}</span><span class="chip">{{ a.event_date|date:"d.m.Y" }}</span></div>
         </div>
         {% if a.status == "approved" %}<span class="pts">+{{ a.points|points }}</span>{% endif %}
         <span class="status status-{{ a.status }}">{{ a.get_status_display }}</span>
@@ -101,7 +102,7 @@
       {% endfor %}
     </ul>
     {% else %}
-    <div class="empty"><span class="tile tile-orange">{% icon "award" %}</span><h3>Bu davrda yutuq yo‘q</h3><p>Yutuq yuklash bo‘limi keyingi bosqichda ochiladi. Tasdiqlangan har bir yutuq balingizga qo‘shiladi.</p></div>
+    <div class="empty"><span class="tile tile-orange">{% icon "award" %}</span><h3>Bu davrda yutuq yo‘q</h3><p>Tasdiqlangan har bir yutuq balingizga qo‘shiladi.</p><p style="margin-top:16px"><a class="btn btn-primary" href="{% url 'achievements:create' %}">{% icon "plus" %}Yutuq qo‘shish</a></p></div>
     {% endif %}
   </section>
 </div>

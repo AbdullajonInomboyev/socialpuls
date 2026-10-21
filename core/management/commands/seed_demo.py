@@ -1,15 +1,17 @@
 """Faqat ishlab chiqish uchun demo ma'lumotlar (DEBUG=True bo'lganda ishlaydi)."""
+import io
 import random
 from datetime import date, timedelta
 from decimal import Decimal
 
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
 from accounts.models import Role, StudentProfile, User
-from achievements.models import Achievement, Criterion, ManualScore, ReviewEvent
+from achievements.models import Achievement, AchievementFile, Criterion, ManualScore, ReviewEvent
 from notifications.models import Notification
 from hemis.mock import MOCK_STUDENTS
 from hemis.services import upsert_student
@@ -38,6 +40,52 @@ TITLES = {
     "sport": ["Universitet mini-futbol turniri", "Yugurish marafoni 5 km", "Stol tennisi musobaqasi"],
     "boshqa": ["Talabalar gazetasi uchun maqola", "Ma’naviyat haftaligida chiqish"],
 }
+
+
+def _ascii(text):
+    return text.replace("‘", "'").replace("’", "'").replace("“", '"').replace("”", '"').replace("–", "-")
+
+
+def certificate_png(title, name, when):
+    """Demo uchun sertifikat surati (haqiqiy hujjat emas)."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    img = Image.new("RGB", (900, 620), "#FFFDF8")
+    d = ImageDraw.Draw(img)
+    d.rectangle([18, 18, 881, 601], outline="#FF8A1F", width=10)
+    d.rectangle([40, 40, 859, 579], outline="#F3C899", width=2)
+    big, mid, small = (ImageFont.load_default(size=n) for n in (54, 26, 20))
+    d.text((450, 130), "SERTIFIKAT", fill="#C25700", font=big, anchor="mm")
+    d.text((450, 215), "Ushbu sertifikat", fill="#64748B", font=small, anchor="mm")
+    d.text((450, 270), _ascii(name), fill="#1E293B", font=mid, anchor="mm")
+    d.text((450, 330), "ga quyidagi tadbirdagi faol ishtiroki uchun beriladi:", fill="#64748B", font=small, anchor="mm")
+    d.multiline_text((450, 395), _ascii(title)[:60], fill="#1E293B", font=mid, anchor="mm", align="center")
+    d.text((450, 520), f"Namangan, {when:%d.%m.%Y}   |   DEMO HUJJAT", fill="#94A3B8", font=small, anchor="mm")
+    buf = io.BytesIO()
+    img.save(buf, "PNG", optimize=True)
+    return buf.getvalue()
+
+
+def certificate_pdf(title, name, when):
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.pdfgen import canvas
+
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=landscape(A4))
+    w, h = landscape(A4)
+    c.setStrokeColorRGB(1, 0.54, 0.12)
+    c.setLineWidth(8)
+    c.rect(24, 24, w - 48, h - 48)
+    c.setFont("Helvetica-Bold", 40)
+    c.drawCentredString(w / 2, h - 140, "DIPLOM")
+    c.setFont("Helvetica", 18)
+    c.drawCentredString(w / 2, h - 210, _ascii(name))
+    c.drawCentredString(w / 2, h - 260, _ascii(title)[:80])
+    c.setFont("Helvetica", 12)
+    c.drawCentredString(w / 2, 70, f"Namangan, {when:%d.%m.%Y}  |  DEMO HUJJAT")
+    c.showPage()
+    c.save()
+    return buf.getvalue()
 
 
 class Command(BaseCommand):
@@ -114,6 +162,15 @@ class Command(BaseCommand):
                         reviewer=dean if status != "pending" else None,
                         reviewer_comment="Sertifikat aniq ko‘rinmayapti, sifatli nusxa yuklang." if status == "returned" else "",
                     )
+                    if sem == s21:
+                        if code == "tanlov":
+                            data, ext, ctype = certificate_pdf(a.title, user.full_name, ev), "pdf", "application/pdf"
+                        else:
+                            data, ext, ctype = certificate_png(a.title, user.full_name, ev), "png", "image/png"
+                        AchievementFile.objects.create(
+                            achievement=a, file=ContentFile(data, name=f"sertifikat.{ext}"), original_name=f"sertifikat.{ext}",
+                            content_type=ctype, size=len(data),
+                        )
                     ReviewEvent.objects.create(achievement=a, actor=user, action="submitted")
                     if status != "pending":
                         ReviewEvent.objects.create(achievement=a, actor=dean, action=status, points=pts, comment=a.reviewer_comment)

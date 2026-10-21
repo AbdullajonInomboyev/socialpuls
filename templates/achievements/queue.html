@@ -1,0 +1,76 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}{% if is_reviewer %}Tekshiruv navbati{% else %}Yutuqlar{% endif %}{% endblock %}
+{% block crumb %}{% if is_reviewer %}Tekshiruv navbati{% else %}Yutuqlar{% endif %}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">{% if is_reviewer %}Tekshiruv navbati{% else %}Talabalar yutuqlari{% endif %}</h1>
+    <p>{% if is_reviewer %}Eng avval yuborilgan yutuq birinchi turadi. Ochib, hujjatni ko‘ring va qaror qiling.{% else %}Faqat ko‘rish rejimi: baholashni fakultet mas’ullari va tyutorlar bajaradi.{% endif %}</p>
+  </div>
+</div>
+
+<form method="get" class="filters panel" role="search">
+  <input type="hidden" name="holat" value="{{ status }}">
+  <div class="field grow">
+    <label for="f-q" class="sr-only">Qidirish</label>
+    <div class="input-icon">{% icon "search" %}<input id="f-q" type="search" name="q" value="{{ filters.q }}" placeholder="Talaba, HEMIS ID yoki yutuq nomi"></div>
+  </div>
+  <div class="field">
+    <label for="f-mezon" class="sr-only">Mezon</label>
+    <select id="f-mezon" name="mezon"><option value="">Barcha mezonlar</option>
+      {% for c in criteria %}<option value="{{ c.pk }}"{% if filters.mezon == c.pk|stringformat:"s" %} selected{% endif %}>{{ c.short_title }}</option>{% endfor %}
+    </select>
+  </div>
+  {% if groups %}
+  <div class="field">
+    <label for="f-guruh" class="sr-only">Guruh</label>
+    <select id="f-guruh" name="guruh"><option value="">Barcha guruhlar</option>
+      {% for g in groups %}<option value="{{ g.pk }}"{% if filters.guruh == g.pk|stringformat:"s" %} selected{% endif %}>{{ g.name }}</option>{% endfor %}
+    </select>
+  </div>
+  {% endif %}
+  <div class="field">
+    <label for="f-sem" class="sr-only">Semestr</label>
+    <select id="f-sem" name="semestr">
+      {% for s in semesters %}<option value="{{ s.pk }}"{% if s == semester %} selected{% endif %}>{{ s }}</option>{% endfor %}
+    </select>
+  </div>
+  <button class="btn btn-secondary" type="submit">{% icon "filter" %}Saralash</button>
+</form>
+
+<nav class="tabs" aria-label="Holat bo‘yicha">
+  {% for t in tabs %}<a href="?{% if keep %}{{ keep }}&{% endif %}holat={{ t.key }}"{% if t.active %} aria-current="page"{% endif %}>{{ t.label }}<span class="n">{{ t.count }}</span></a>{% endfor %}
+</nav>
+
+<section class="panel">
+  {% if page.object_list %}
+  <ul class="list queue-list">
+    {% for a in page.object_list %}{% with st=a.student %}
+    <li>
+      {% if st.profile.image_url %}<img class="avatar avatar-round" src="{{ st.profile.image_url }}" alt="">{% else %}<span class="avatar avatar-round" aria-hidden="true">{{ st.initials }}</span>{% endif %}
+      <div class="grow">
+        <div class="q-name">{{ st.full_name }}</div>
+        <a class="title stretched" href="{% url 'achievements:detail' a.pk %}">{{ a.title }}</a>
+        <div class="chips">
+          <span class="chip chip-orange">{% icon a.criterion|criterion_icon %}{{ a.criterion.short_title }}</span>
+          {% if st.profile.group %}<span class="chip">{% icon "id" %}{{ st.profile.group.name }}</span>{% endif %}
+          <span class="chip">{% icon "paperclip" %}{{ a.file_count }}</span>
+        </div>
+      </div>
+      <div class="ach-side">
+        {% if a.status == "pending" %}<span class="subtle" title="{{ a.submitted_at|date:'d.m.Y H:i' }}">{{ a.submitted_at|ago }}</span>
+        {% else %}{% if a.status == "approved" %}<span class="pts">+{{ a.points|points }}</span>{% endif %}<span class="subtle">{{ a.reviewer.short_name|default:"" }}</span>{% endif %}
+        <span class="status status-{{ a.status }}">{{ a.get_status_display }}</span>
+      </div>
+    </li>
+    {% endwith %}{% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty">
+    <span class="tile tile-green">{% icon "check" %}</span>
+    {% if status == "pending" %}<h3>Navbat bo‘sh</h3><p>Hozircha tekshirilishi kerak bo‘lgan yutuq yo‘q.</p>{% else %}<h3>Topilmadi</h3><p>Saralash shartlarini o‘zgartirib ko‘ring.</p>{% endif %}
+  </div>
+  {% endif %}
+</section>
+{% include "partials/pager.html" %}
+{% endblock %}

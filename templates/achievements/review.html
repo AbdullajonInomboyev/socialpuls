@@ -1,0 +1,103 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}Tekshiruv: {{ a.title }}{% endblock %}
+{% block crumb %}Tekshiruv navbati{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <a class="back" href="{% url 'achievements:queue' %}">{% icon "arrow-left" %}Navbatga qaytish</a>
+    <h1 class="page-title">{{ a.title }}</h1>
+    <div class="chips" style="margin-top:8px">
+      <span class="status status-{{ a.status }}">{{ a.get_status_display }}</span>
+      <span class="chip chip-orange">{% icon a.criterion|criterion_icon %}{{ a.criterion.short_title }}</span>
+      <span class="chip">{% icon "calendar" %}{{ a.event_date|date:"d.m.Y" }}</span>
+      {% if a.submitted_at %}<span class="chip">{% icon "clock" %}Yuborilgan {{ a.submitted_at|date:"d.m.Y H:i" }}</span>{% endif %}
+    </div>
+  </div>
+  {% if pending_left %}<span class="subtle">Navbatda yana {{ pending_left }} ta yutuq</span>{% endif %}
+</div>
+
+<div class="review-grid">
+  <div class="stack">
+    <section class="panel">
+      <div class="panel-head"><h2>Hujjatlar</h2><span class="subtle">Kattalashtirish uchun bosing</span></div>
+      <div class="panel-body">
+        {% with first=files.0 %}{% if first and not first.is_image %}
+        <iframe class="pdf-frame only-desktop" src="{% url 'achievements:file' first.pk %}" title="{{ first.original_name }}"></iframe>
+        {% endif %}{% endwith %}
+        {% include "achievements/_files.html" %}
+      </div>
+    </section>
+    {% if a.description %}
+    <section class="panel"><div class="panel-head"><h2>Talaba izohi</h2></div><div class="panel-body prose">{{ a.description|linebreaksbr }}</div></section>
+    {% endif %}
+  </div>
+
+  <div class="stack review-side">
+    <section class="panel student-card">
+      <div class="panel-body">
+        <div class="who-row">
+          {% if a.student.profile.image_url %}<img class="avatar avatar-round" src="{{ a.student.profile.image_url }}" alt="">{% else %}<span class="avatar avatar-round" aria-hidden="true">{{ a.student.initials }}</span>{% endif %}
+          <div><div class="person-name">{{ a.student.full_name }}</div><div class="subtle num">ID {{ a.student.hemis_id|default:"–" }}</div></div>
+        </div>
+        <div class="chips">
+          {% if a.student.profile.faculty %}<span class="chip chip-orange">{% icon "building" %}{{ a.student.profile.faculty.name }}</span>{% endif %}
+          {% if a.student.profile.group %}<span class="chip chip-orange">{% icon "id" %}{{ a.student.profile.group.name }}</span>{% endif %}
+          {% if a.student.profile.course %}<span class="chip chip-blue">{% icon "layers" %}{{ a.student.profile.course }}-kurs</span>{% endif %}
+        </div>
+        <div class="meter">
+          <div class="meter-head"><span>“{{ a.criterion.short_title }}” mezonida</span><b>{{ in_criterion|points }} / {{ a.criterion.max_points }}</b></div>
+          <div class="bar"><i style="--fill: {{ in_criterion|percent_of:a.criterion.max_points }}%"></i></div>
+          <p class="subtle">{% if room > 0 %}Bu yutuq bilan yana ko‘pi bilan {{ room|points }} ball qo‘shilishi mumkin.{% else %}Mezon to‘lgan: yangi ball jami ballga qo‘shilmaydi.{% endif %}</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel decision">
+      <div class="panel-head"><h2>Qaror</h2>{% if a.status == "approved" %}<span class="subtle">Hozirgi ball: {{ a.points|points }}</span>{% endif %}</div>
+      <form method="post" class="panel-body" data-busy-form novalidate>
+        {% csrf_token %}
+        {{ form.version }}
+        {% if form.non_field_errors %}<div class="alert alert-error" role="alert">{% icon "alert" %}<div>{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}</div></div>{% endif %}
+        {% if levels %}
+        <div class="field">
+          <span class="label">Daraja bo‘yicha ball</span>
+          <div class="level-btns">
+            {% for lv in levels %}<button type="button" class="level-btn{% if a.level_id == lv.pk %} is-claimed{% endif %}" data-fill-points="{{ lv.points|stringformat:'s' }}">{{ lv.title }}<b>{{ lv.points|points }}</b></button>{% endfor %}
+          </div>
+          {% if a.level %}<span class="hint">Talaba “{{ a.level.title }}” darajasini tanlagan.</span>{% endif %}
+        </div>
+        {% endif %}
+        <div class="field{% if form.points.errors %} has-error{% endif %}">
+          <label for="{{ form.points.id_for_label }}">Ball <span class="subtle">(0 – {{ a.criterion.max_points }})</span></label>
+          {{ form.points }}
+          {% for e in form.points.errors %}<span class="error">{{ e }}</span>{% endfor %}
+        </div>
+        {% include "partials/field.html" with field=form.comment %}
+        <label class="check then"><input type="checkbox" name="then" value="next" checked>Qarordan keyin navbatdagi yutuqni ochish</label>
+        <div class="decision-btns">
+          <button class="btn btn-success" type="submit" name="action" value="approve">{% icon "tick" %}{% if a.status == "approved" %}Ballni saqlash{% else %}Tasdiqlash{% endif %}</button>
+          {% if a.status == "pending" or a.status == "approved" %}<button class="btn btn-soft-blue" type="submit" name="action" value="return">{% icon "undo" %}Qaytarish</button>{% endif %}
+          {% if a.status != "rejected" %}<button class="btn btn-soft-red" type="submit" name="action" value="reject">{% icon "x" %}Rad etish</button>{% endif %}
+          <button class="btn btn-ghost" type="submit" name="action" value="comment">{% icon "message" %}Faqat izoh</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>Tekshiruv tarixi</h2></div>
+      <div class="panel-body">{% include "achievements/_timeline.html" %}</div>
+    </section>
+    {% if others %}
+    <section class="panel">
+      <div class="panel-head"><h2>Talabaning shu semestrdagi boshqa yutuqlari</h2></div>
+      <ul class="list compact">
+        {% for o in others %}
+        <li><div class="grow"><a class="title" href="{% url 'achievements:detail' o.pk %}">{{ o.title }}</a><div class="meta">{{ o.criterion.short_title }}</div></div>
+          {% if o.status == "approved" %}<span class="pts">+{{ o.points|points }}</span>{% endif %}<span class="status status-{{ o.status }}">{{ o.get_status_display }}</span></li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

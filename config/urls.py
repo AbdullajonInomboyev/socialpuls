@@ -9,6 +9,7 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("accounts.urls")),
     path("eslatmalar/", include("notifications.urls")),
+    path("", include("achievements.urls")),
     path("", include("core.urls")),
 ]
 

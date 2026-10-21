@@ -46,6 +46,41 @@ ICONS = {
     "layers": '<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>',
     "timer": '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6"/>',
     "hourglass": '<path d="M5 22h14M5 2h14M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4a2 2 0 0 0-.6 1.4V22M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4a2 2 0 0 0 .6-1.4V2"/>',
+    "book": '<path d="M4 19.5V4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>',
+    "sparkles": '<path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8zM5 2l.6 1.4L7 4l-1.4.6L5 6l-.6-1.4L3 4l1.4-.6z"/>',
+    "heart": '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>',
+    "landmark": '<path d="M3 22h18M6 18v-7M10 18v-7M14 18v-7M18 18v-7M12 2l8 5H4z"/>',
+    "activity": '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',
+    "star": '<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/>',
+    "calendar": '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    "upload": '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5M12 3v12"/>',
+    "paperclip": '<path d="m21.4 11.1-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/>',
+    "trash": '<path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/>',
+    "edit": '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+    "arrow-left": '<path d="M19 12H5M12 19l-7-7 7-7"/>',
+    "arrow-right": '<path d="M5 12h14M12 5l7 7-7 7"/>',
+    "image": '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
+    "tick": '<path d="M20 6 9 17l-5-5"/>',
+    "undo": '<path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/>',
+    "message": '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    "filter": '<path d="M22 3H2l8 9.5V19l4 2v-8.5z"/>',
+    "external": '<path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+    "clipboard": '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
+}
+
+# Mezon kodi bo'yicha ikona (yangi mezon qo'shilsa "star" chiqadi).
+CRITERION_ICONS = {
+    "kitobxonlik": "book",
+    "tashabbus": "sparkles",
+    "akademik": "school",
+    "odob": "shield",
+    "tanlov": "trophy",
+    "davomat": "calendar",
+    "marifat": "message",
+    "volontyorlik": "heart",
+    "madaniyat": "landmark",
+    "sport": "activity",
+    "boshqa": "star",
 }
 
 
@@ -93,3 +128,34 @@ def percent_of(value, total):
         return "0"
     # Satr qaytariladi: float lokalizatsiyada vergul bilan chiqib, CSS ni buzadi.
     return f"{max(0.0, min(100.0, v / t * 100)):.1f}"
+
+
+@register.filter
+def criterion_icon(criterion):
+    return CRITERION_ICONS.get(getattr(criterion, "code", criterion), "star")
+
+
+@register.filter
+def filesize(value):
+    """Bayt -> "1,2 MB" / "340 KB"."""
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        return ""
+    if n >= 1024 * 1024:
+        return f"{n / 1024 / 1024:.1f} MB".replace(".", ",")
+    return f"{max(1, round(n / 1024))} KB"
+
+
+@register.filter
+def ago(value):
+    """Eng katta birlikda: "3 kun oldin", "2 soat oldin". (uz lokalidagi timesince bo'shliqlarni yo'qotadi.)"""
+    if not value:
+        return ""
+    from django.utils import timezone
+
+    seconds = max(0, int((timezone.now() - value).total_seconds()))
+    for size, unit in ((365 * 86400, "yil"), (30 * 86400, "oy"), (7 * 86400, "hafta"), (86400, "kun"), (3600, "soat"), (60, "daqiqa")):
+        if seconds >= size:
+            return f"{seconds // size} {unit} oldin"
+    return "hozirgina"

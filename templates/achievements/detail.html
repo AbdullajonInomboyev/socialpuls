@@ -1,0 +1,69 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}{{ a.title }}{% endblock %}
+{% block crumb %}{% if is_owner %}Yutuqlarim{% else %}Yutuqlar{% endif %}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <a class="back" href="{% if is_owner %}{% url 'achievements:my_list' %}{% else %}{% url 'achievements:queue' %}{% endif %}">{% icon "arrow-left" %}Orqaga</a>
+    <h1 class="page-title">{{ a.title }}</h1>
+    <div class="chips" style="margin-top:8px">
+      <span class="status status-{{ a.status }}">{{ a.get_status_display }}</span>
+      <span class="chip chip-orange">{% icon a.criterion|criterion_icon %}{{ a.criterion.short_title }}</span>
+      <span class="chip">{{ a.semester }}</span>
+    </div>
+  </div>
+  {% if is_owner and a.is_editable_by_student %}
+  <a class="btn btn-primary" href="{% url 'achievements:edit' a.pk %}">{% icon "edit" %}{% if a.status == "returned" %}Tuzatib qayta yuborish{% else %}Tahrirlash{% endif %}</a>
+  {% endif %}
+</div>
+
+{% if a.status == "returned" %}
+<div class="alert alert-info" role="status">{% icon "undo" %}<span><b>Qayta ishlashga qaytarildi.</b> {{ a.reviewer_comment }}</span></div>
+{% elif a.status == "rejected" %}
+<div class="alert alert-error" role="status">{% icon "x" %}<span><b>Rad etildi.</b> {{ a.reviewer_comment }}</span></div>
+{% elif a.status == "approved" %}
+<div class="alert alert-success" role="status">{% icon "check" %}<span><b>Tasdiqlandi: +{{ a.points|points }} ball.</b>{% if a.reviewer_comment %} {{ a.reviewer_comment }}{% endif %}</span></div>
+{% elif a.status == "draft" %}
+<div class="alert alert-warning" role="status">{% icon "info" %}<span>Bu qoralama. Mas’ul uni ko‘rmaydi, tekshiruvga yuborish uchun “Tahrirlash”ni bosing.</span></div>
+{% endif %}
+
+<div class="grid-2">
+  <div class="stack">
+    <section class="panel">
+      <div class="panel-head"><h2>Hujjatlar</h2><span class="subtle">{{ files|length }} ta fayl</span></div>
+      <div class="panel-body">{% include "achievements/_files.html" %}</div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>Ma’lumotlar</h2></div>
+      <div class="panel-body">
+        <dl class="dl">
+          {% if not is_owner %}<dt>Talaba</dt><dd>{{ a.student.full_name }}{% if a.student.profile.group %}, {{ a.student.profile.group.name }}{% endif %}</dd>{% endif %}
+          <dt>Mezon</dt><dd>{{ a.criterion.title }} <span class="subtle">(maks. {{ a.criterion.max_points }} ball)</span></dd>
+          {% if a.level %}<dt>Daraja</dt><dd>{{ a.level.title }} <span class="subtle">({{ a.level.points|points }} ball)</span></dd>{% endif %}
+          <dt>Sana</dt><dd>{{ a.event_date|date:"d.m.Y" }}</dd>
+          {% if a.submitted_at %}<dt>Yuborilgan</dt><dd>{{ a.submitted_at|date:"d.m.Y H:i" }}</dd>{% endif %}
+          {% if a.reviewer %}<dt>Tekshirgan</dt><dd>{{ a.reviewer.short_name }}, {{ a.reviewed_at|date:"d.m.Y H:i" }}</dd>{% endif %}
+          {% if a.description %}<dt>Izoh</dt><dd class="prose">{{ a.description|linebreaksbr }}</dd>{% endif %}
+        </dl>
+      </div>
+    </section>
+  </div>
+  <div class="stack">
+    <section class="panel">
+      <div class="panel-head"><h2>Tekshiruv tarixi</h2></div>
+      <div class="panel-body">{% include "achievements/_timeline.html" %}</div>
+    </section>
+    {% if can_delete %}
+    <details class="danger-zone panel">
+      <summary>{% icon "trash" %}Yutuqni o‘chirish</summary>
+      <div class="panel-body">
+        <p class="muted">Yutuq va unga biriktirilgan fayllar butunlay o‘chiriladi. Buni qaytarib bo‘lmaydi.</p>
+        <form method="post" action="{% url 'achievements:delete' a.pk %}">{% csrf_token %}
+          <button class="btn btn-danger" type="submit">{% icon "trash" %}Ha, o‘chirish</button>
+        </form>
+      </div>
+    </details>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

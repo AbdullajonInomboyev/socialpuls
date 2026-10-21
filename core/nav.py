@@ -1,15 +1,15 @@
 """Rolga qarab menyu. Faqat mavjud va ruxsat berilgan sahifalar chiqadi."""
 from django.urls import NoReverseMatch, reverse
 
-from accounts.models import Role
+from accounts.models import REVIEWER_ROLES, Role
 
 
-def _item(label, url_name, icon, match=None):
+def _item(label, url_name, icon, key="", match=None):
     try:
         url = reverse(url_name)
     except NoReverseMatch:
         return None
-    return {"label": label, "url": url, "icon": icon, "match": match or url}
+    return {"label": label, "url": url, "icon": icon, "key": key, "match": match or url}
 
 
 def build_nav(user):
@@ -18,13 +18,23 @@ def build_nav(user):
     if user.role == Role.STUDENT:
         items = [
             _item("Bosh sahifa", "core:home", "home"),
-            _item("Eslatmalar", "notifications:list", "bell"),
+            _item("Yutuqlarim", "achievements:my_list", "award", match="/yutuqlar/"),
+            _item("Yutuq qo‘shish", "achievements:create", "plus"),
+            _item("Eslatmalar", "notifications:list", "bell", key="notifications"),
             _item("Profil", "accounts:profile", "user"),
         ]
         items = [i for i in items if i]
-        return [("", items)], items  # pastki mobil menyu uchun ham shu ro'yxat
+        bottom = [dict(i, label="Qo‘shish") if i["icon"] == "plus" else i for i in items]
+        return [("", items)], bottom
 
-    groups = [("", [_item("Bosh sahifa", "core:home", "home"), _item("Eslatmalar", "notifications:list", "bell")])]
+    main = [_item("Bosh sahifa", "core:home", "home")]
+    if user.role in REVIEWER_ROLES:
+        main.append(_item("Tekshiruv navbati", "achievements:queue", "clipboard", key="queue"))
+        main.append(_item("Qo‘lda baholash", "achievements:manual", "edit"))
+    else:
+        main.append(_item("Yutuqlar", "achievements:queue", "award"))
+    main.append(_item("Eslatmalar", "notifications:list", "bell", key="notifications"))
+    groups = [("", main)]
     account = [_item("Profil", "accounts:profile", "user")]
     if user.is_superuser:
         account.append(_item("Django admin", "admin:index", "shield"))

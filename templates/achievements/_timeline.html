@@ -1,0 +1,14 @@
+{% load ui %}<ol class="timeline">
+  {% for e in events %}
+  <li class="tl-{{ e.action }}">
+    <span class="tl-dot" aria-hidden="true"></span>
+    <div>
+      <b>{{ e.get_action_display }}</b>{% if e.points is not None %} <span class="pts">{{ e.points|points }} ball</span>{% endif %}
+      <div class="meta">{% if e.actor %}{% if e.actor == a.student %}Talaba{% else %}{{ e.actor.short_name }}{% endif %}, {% endif %}{{ e.created_at|date:"d.m.Y H:i" }}</div>
+      {% if e.comment %}<p class="tl-comment">{{ e.comment|linebreaksbr }}</p>{% endif %}
+    </div>
+  </li>
+  {% empty %}
+  <li><span class="tl-dot" aria-hidden="true"></span><div><b>Qoralama</b><div class="meta">Hali yuborilmagan</div></div></li>
+  {% endfor %}
+</ol>

@@ -1,0 +1,68 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}Yutuqlarim{% endblock %}
+{% block crumb %}Yutuqlarim{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Yutuqlarim</h1>
+    <p>Yuklagan yutuqlaringiz va ularning tekshiruv holati.</p>
+  </div>
+  <div class="head-actions">
+    {% if semesters|length > 1 %}
+    <form method="get" class="period-form" data-autosubmit>
+      <label for="semestr">Semestr</label>
+      <select id="semestr" name="semestr">
+        {% for s in semesters %}<option value="{{ s.pk }}"{% if s == semester %} selected{% endif %}>{{ s }}</option>{% endfor %}
+        <option value=""{% if not semester %} selected{% endif %}>Barcha semestrlar</option>
+      </select>
+      {% if status %}<input type="hidden" name="holat" value="{{ status }}">{% endif %}
+      <noscript><button class="btn btn-secondary" type="submit">Ko‘rsatish</button></noscript>
+    </form>
+    {% endif %}
+    {% if can_upload %}<a class="btn btn-primary" href="{% url 'achievements:create' %}">{% icon "plus" %}Yutuq qo‘shish</a>{% endif %}
+  </div>
+</div>
+
+{% if upload_block %}<div class="alert alert-warning" role="status">{% icon "alert" %}<span>{{ upload_block }}</span></div>{% endif %}
+
+<nav class="tabs" aria-label="Holat bo‘yicha">
+  {% for t in tabs %}
+  <a href="?{% if semester %}semestr={{ semester.pk }}&{% elif semesters|length > 1 %}semestr=&{% endif %}holat={{ t.key }}"{% if t.active %} aria-current="page"{% endif %}>{{ t.label }}<span class="n">{{ t.count }}</span></a>
+  {% endfor %}
+</nav>
+
+<section class="panel">
+  {% if page.object_list %}
+  <ul class="list ach-list">
+    {% for a in page.object_list %}
+    <li>
+      <span class="tile tile-orange crit-ico" aria-hidden="true">{% icon a.criterion|criterion_icon %}</span>
+      <div class="grow">
+        <a class="title stretched" href="{% url 'achievements:detail' a.pk %}">{{ a.title }}</a>
+        <div class="chips">
+          <span class="chip chip-orange">{{ a.criterion.short_title }}</span>
+          {% if a.level %}<span class="chip">{{ a.level.title }}</span>{% endif %}
+          <span class="chip">{% icon "calendar" %}{{ a.event_date|date:"d.m.Y" }}</span>
+          <span class="chip">{% icon "paperclip" %}{{ a.file_count }}</span>
+          {% if not semester %}<span class="chip chip-blue">{{ a.semester }}</span>{% endif %}
+        </div>
+        {% if a.status == "returned" or a.status == "rejected" %}{% if a.reviewer_comment %}<p class="note">{% icon "message" %}{{ a.reviewer_comment|truncatechars:160 }}</p>{% endif %}{% endif %}
+      </div>
+      <div class="ach-side">
+        {% if a.status == "approved" %}<span class="pts">+{{ a.points|points }}</span>{% endif %}
+        <span class="status status-{{ a.status }}">{{ a.get_status_display }}</span>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty">
+    <span class="tile tile-orange">{% icon "award" %}</span>
+    {% if status %}<h3>Bu holatda yutuq yo‘q</h3><p>Boshqa bo‘limni tanlang.</p>
+    {% else %}<h3>Hali yutuq yuklamadingiz</h3><p>Tanlov, to‘garak, volontyorlik yoki kitobxonlikdagi ishtirokingizni hujjat bilan yuklang. Tasdiqlangach ball qo‘shiladi.</p>
+    {% if can_upload %}<p style="margin-top:16px"><a class="btn btn-primary" href="{% url 'achievements:create' %}">{% icon "plus" %}Birinchi yutuqni qo‘shish</a></p>{% endif %}{% endif %}
+  </div>
+  {% endif %}
+</section>
+{% include "partials/pager.html" %}
+{% endblock %}
