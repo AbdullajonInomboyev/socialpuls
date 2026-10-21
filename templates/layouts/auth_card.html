@@ -1,0 +1,10 @@
+{% extends "base.html" %}{% load ui %}
+{% block body %}
+<div class="auth-form-side" style="min-height:100vh">
+  <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Rang rejimini almashtirish">{% icon "moon" %}</button>
+  <main class="auth-card" id="main">
+    <div style="margin-bottom:32px; color:var(--ink)">{% include "partials/brand.html" %}</div>
+    {% block card %}{% endblock %}
+  </main>
+</div>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}Profil{% endblock %}
+{% block crumb %}Profil{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div style="display:flex; gap:16px; align-items:center">
+    {% if profile.image_url %}<img class="avatar avatar-lg" src="{{ profile.image_url }}" alt="">{% else %}<span class="avatar avatar-lg" aria-hidden="true">{{ user.initials }}</span>{% endif %}
+    <div><h1 class="page-title">{{ user.full_name|default:user.username }}</h1><p>{{ user.get_role_display }}</p></div>
+  </div>
+</div>
+<div class="grid-2">
+  <section class="panel" aria-labelledby="info-title">
+    <div class="panel-head"><h2 id="info-title">{% if profile %}HEMIS ma’lumotlari{% else %}Hisob ma’lumotlari{% endif %}</h2>
+      {% if profile.hemis_synced_at %}<span class="subtle">Yangilangan: {{ profile.hemis_synced_at|date:"d.m.Y H:i" }}</span>{% endif %}</div>
+    <div class="panel-body">
+      <dl class="dl">
+        {% if profile %}
+        <dt>Talaba ID</dt><dd class="num">{{ profile.student_id_number }}</dd>
+        <dt>Fakultet</dt><dd>{{ profile.faculty.name|default:"–" }}</dd>
+        <dt>Yo‘nalish</dt><dd>{{ profile.specialty.name|default:"–" }}</dd>
+        <dt>Guruh</dt><dd>{{ profile.group.name|default:"–" }}</dd>
+        <dt>Kurs</dt><dd>{{ profile.course|default:"–" }}</dd>
+        <dt>Ta’lim shakli</dt><dd>{{ profile.education_form|default:"–" }}{% if profile.education_type %}, {{ profile.education_type }}{% endif %}</dd>
+        <dt>GPA</dt><dd class="num">{{ profile.gpa|points }}</dd>
+        {% else %}
+        <dt>Login</dt><dd>{{ user.username }}</dd>
+        <dt>Rol</dt><dd>{{ user.get_role_display }}</dd>
+        {% if user.faculty %}<dt>Fakultet</dt><dd>{{ user.faculty.name }}</dd>{% endif %}
+        {% if user.role == "tutor" %}<dt>Guruhlar</dt><dd>{{ user.tutor_groups.all|join:", "|default:"Biriktirilmagan" }}</dd>{% endif %}
+        {% endif %}
+      </dl>
+      {% if profile %}<p class="subtle" style="margin-top:16px">Ma’lumot noto‘g‘ri bo‘lsa, uni HEMIS’da tuzattiring. Keyingi kirishda bu yerda ham yangilanadi.</p>{% endif %}
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="notify-title">
+    <div class="panel-head"><h2 id="notify-title">Bildirishnomalar</h2></div>
+    <div class="panel-body">
+      <form method="post" novalidate data-busy-form>
+        {% csrf_token %}
+        {% include "partials/field.html" with field=form.email %}
+        <label class="check field">{{ form.notify_email }} <span>{{ form.notify_email.label }}</span></label>
+        {% include "partials/field.html" with field=form.telegram_chat_id %}
+        <label class="check field">{{ form.notify_telegram }} <span>{{ form.notify_telegram.label }}</span></label>
+        <button class="btn btn-primary" type="submit">Sozlamalarni saqlash</button>
+      </form>
+    </div>
+  </section>
+</div>
+{% endblock %}

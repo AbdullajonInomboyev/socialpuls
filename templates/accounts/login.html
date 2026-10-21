@@ -1,0 +1,56 @@
+{% extends "base.html" %}{% load ui %}
+{% block title %}Kirish{% endblock %}
+{% block body %}
+<div class="auth">
+  <section class="auth-story" aria-labelledby="story-title">
+    {% include "partials/brand.html" %}
+    <div>
+      <h1 id="story-title">Faolligingiz ballarda ko‘rinadi</h1>
+      <p class="lead">Kitobxonlik, volontyorlik, tanlov va olimpiadalardagi yutuqlaringizni yuklang. Fakultet mas’uli tasdiqlagach, ball reytingingizga qo‘shiladi.</p>
+    </div>
+    <div class="auth-scale">
+      <div class="auth-scale-title"><span>Baholash {{ scale|length }} mezon bo‘yicha</span><b>{{ scale_total }} ball</b></div>
+      {% include "partials/puls.html" with rows=scale animate=True label="Mezonlar va ularning maksimal bali" %}
+      <ul class="scale-list">
+        {% for r in scale %}<li><span>{{ r.criterion.short_title }}</span><b>{{ r.max }}</b></li>{% endfor %}
+      </ul>
+    </div>
+  </section>
+
+  <section class="auth-form-side">
+    <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Rang rejimini almashtirish">{% icon "moon" %}</button>
+    <main class="auth-card" id="main">
+      <h2>Tizimga kirish</h2>
+      <p class="intro">{% if mode == "staff" %}Xodimlar moderator bergan login va parol bilan kiradi.{% else %}Talabalar HEMIS’ga kiradigan login va parol bilan kiradi.{% endif %}</p>
+
+      <nav class="segmented" aria-label="Kim sifatida kirish">
+        <a href="{% url 'accounts:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}"{% if mode == "student" %} aria-current="page"{% endif %}>Talaba</a>
+        <a href="{% url 'accounts:login' %}?xodim=1{% if next %}&next={{ next|urlencode }}{% endif %}"{% if mode == "staff" %} aria-current="page"{% endif %}>Xodim</a>
+      </nav>
+
+      {% if locked %}
+      <div class="alert alert-error" role="alert">{% icon "lock" %}<span>Juda ko‘p noto‘g‘ri urinish bo‘ldi. 15 daqiqadan keyin qayta urinib ko‘ring.</span></div>
+      {% endif %}
+      {% for e in form.non_field_errors %}
+      <div class="alert alert-error" role="alert">{% icon "alert" %}<span>{{ e }}</span></div>
+      {% endfor %}
+
+      <form method="post" novalidate data-busy-form>
+        {% csrf_token %}
+        <input type="hidden" name="mode" value="{{ mode }}">
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+        {% for field in form %}{% include "partials/field.html" %}{% endfor %}
+        <button class="btn btn-primary btn-block" type="submit">Kirish</button>
+      </form>
+
+      <div class="auth-foot">
+        {% if mode == "staff" %}
+        <a href="{% url 'accounts:password_reset' %}">Parolni unutdingizmi?</a>
+        {% else %}
+        <span>Parolni unutgan bo‘lsangiz, uni HEMIS’da tiklang.</span>
+        {% endif %}
+      </div>
+    </main>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "layouts/app.html" %}{% load ui humanize %}
+{% block title %}Bosh sahifa{% endblock %}
+{% block crumb %}Boshqaruv paneli{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Xush kelibsiz, {{ user.first_name|default:user.username }}</h1>
+    <p>{{ user.get_role_display }}: {{ scope_label }}{% if semester %}. Ko‘rsatkichlar {{ semester }} bo‘yicha.{% endif %}</p>
+  </div>
+</div>
+
+{% if not semester %}
+<div class="alert alert-warning" role="status">{% icon "alert" %}<span>Joriy semestr belgilanmagan. Ballar hisoblanishi uchun moderator joriy semestrni belgilashi kerak.</span></div>
+{% endif %}
+
+<div class="stack">
+  <section class="facts" aria-label="Asosiy ko‘rsatkichlar">
+    <div class="fact"><span>Talabalar</span><b class="num">{{ student_count|intcomma }}</b></div>
+    <div class="fact"><span>Tekshiruvni kutmoqda</span><b class="num">{{ pending_count|intcomma }}</b></div>
+    <div class="fact"><span>O‘rtacha ball</span><b class="num">{{ avg_score|points }}</b></div>
+    <div class="fact"><span>Kamida bitta yutug‘i tasdiqlangan</span><b class="num">{{ active_count|intcomma }}</b></div>
+  </section>
+
+  <section class="panel" aria-labelledby="top-title">
+    <div class="panel-head"><h2 id="top-title">Eng faol talabalar</h2><span class="subtle">Joriy semestr</span></div>
+    {% if top_rows %}
+    <ul class="list">
+      {% for t in top_rows %}
+      <li>
+        <span class="num subtle" style="width:24px">{{ forloop.counter }}</span>
+        <div class="grow">
+          <div class="title">{{ t.score.student.full_name }}</div>
+          <div class="meta">{{ t.score.student.profile.group.name|default:"" }}{% if t.score.faculty %}, {{ t.score.faculty.name }}{% endif %}</div>
+          <div style="margin-top:8px; max-width:420px">{% include "partials/puls.html" with rows=t.rows size="sm" %}</div>
+        </div>
+        <b class="num">{{ t.score.total|points }}</b>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="empty">{% icon "chart" %}<h3>Hali ball hisoblanmagan</h3><p>Talabalar tizimga kirib, yutuqlari tasdiqlangach reyting shu yerda ko‘rinadi.</p></div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

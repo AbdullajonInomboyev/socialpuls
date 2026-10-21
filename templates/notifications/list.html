@@ -1,0 +1,42 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}Eslatmalar{% endblock %}
+{% block crumb %}Eslatmalar{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1 class="page-title">Eslatmalar</h1><p>Tekshiruv natijalari, tizim xabarlari va mas’ullardan kelgan xabarlar.</p></div>
+  {% if unread_count %}
+  <form method="post" action="{% url 'notifications:read_all' %}">{% csrf_token %}
+    <button class="btn btn-secondary" type="submit">Hammasini o‘qilgan deb belgilash</button>
+  </form>
+  {% endif %}
+</div>
+<section class="panel">
+  {% if page.object_list %}
+  <ul class="list">
+    {% for n in page.object_list %}
+    <li class="{% if not n.is_read %}unread{% endif %}">
+      <div class="grow">
+        <div class="title">{{ n.title }}</div>
+        {% if n.body %}<p class="muted" style="font-size:14px; margin-top:4px">{{ n.body|linebreaksbr }}</p>{% endif %}
+        <div class="meta">{{ n.get_kind_display }}, {{ n.created_at|date:"d.m.Y H:i" }}</div>
+      </div>
+      {% if not n.is_read or n.link %}
+      <form method="post" action="{% url 'notifications:read' n.pk %}">{% csrf_token %}
+        <button class="btn btn-ghost" type="submit">{% if n.link %}Ochish{% else %}O‘qildi{% endif %}</button>
+      </form>
+      {% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="empty">{% icon "bell" %}<h3>Eslatmalar yo‘q</h3><p>Yangi xabar kelganda shu yerda ko‘rinadi.</p></div>
+  {% endif %}
+</section>
+{% if page.has_other_pages %}
+<nav class="period-switch" style="margin-top:16px" aria-label="Sahifalar">
+  {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}">Oldingi</a>{% endif %}
+  <a aria-current="true">{{ page.number }} / {{ page.paginator.num_pages }}</a>
+  {% if page.has_next %}<a href="?page={{ page.next_page_number }}">Keyingi</a>{% endif %}
+</nav>
+{% endif %}
+{% endblock %}
