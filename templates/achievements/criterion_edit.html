@@ -1,0 +1,43 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}{{ criterion.short_title }}{% endblock %}
+{% block crumb %}Mezonlar{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <a class="back" href="{% url 'achievements:criteria' %}">{% icon "arrow-left" %}Mezonlar</a>
+    <h1 class="page-title">{{ criterion.short_title }}</h1>
+    <p>Maksimal ball: {{ criterion.max_points }}. {{ criterion.get_input_mode_display }}.</p>
+  </div>
+</div>
+<form method="post" class="ach-form" data-busy-form>
+  {% csrf_token %}
+  <section class="panel"><div class="panel-head"><h2>Nomi va izohi</h2></div>
+    <div class="panel-body">
+      {% include "partials/field.html" with field=form.title %}
+      {% include "partials/field.html" with field=form.short_title %}
+      {% include "partials/field.html" with field=form.description %}
+    </div>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><h2>Darajalar</h2><span class="subtle">Talaba tanlaydi, mas’ul tez ball qo‘yishda foydalanadi</span></div>
+    {{ levels.management_form }}
+    {% if levels.non_form_errors %}<div class="panel-body"><div class="alert alert-error">{% icon "alert" %}<div>{{ levels.non_form_errors|join:" " }}</div></div></div>{% endif %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th scope="col">Nomi</th><th scope="col" class="c">Ball</th><th scope="col" class="c">Tartib</th><th scope="col" class="c">O‘chirish</th></tr></thead>
+        <tbody>
+          {% for f in levels %}
+          <tr>
+            <td class="field{% if f.title.errors %} has-error{% endif %}">{{ f.id }}{{ f.title }}{% for e in f.title.errors %}<span class="error">{{ e }}</span>{% endfor %}</td>
+            <td class="c{% if f.points.errors %} has-error{% endif %}">{{ f.points }}{% for e in f.points.errors %}<span class="error">{{ e }}</span>{% endfor %}</td>
+            <td class="c">{{ f.order }}</td>
+            <td class="c">{% if f.instance.pk %}{{ f.DELETE }}{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <div class="form-actions"><button class="btn btn-primary" type="submit">{% icon "tick" %}Saqlash</button></div>
+</form>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}{{ student.full_name }}{% endblock %}
+{% block crumb %}Reyting{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <a class="back" href="{% url 'ratings:rating' %}?davr={{ period.key }}">{% icon "arrow-left" %}Reytingga qaytish</a>
+    <div class="who-row" style="margin:0">
+      {% if profile.image_url %}<img class="avatar avatar-lg" src="{{ profile.image_url }}" alt="">{% else %}<span class="avatar avatar-lg" aria-hidden="true">{{ student.initials }}</span>{% endif %}
+      <div>
+        <h1 class="page-title">{{ student.full_name }}</h1>
+        <div class="chips" style="margin-top:6px">
+          <span class="chip">ID {{ student.hemis_id|default:"–" }}</span>
+          {% if profile.faculty %}<span class="chip chip-orange">{% icon "building" %}{{ profile.faculty.name }}</span>{% endif %}
+          {% if profile.group %}<span class="chip chip-orange">{% icon "id" %}{{ profile.group.name }}</span>{% endif %}
+          {% if profile.course %}<span class="chip chip-blue">{% icon "layers" %}{{ profile.course }}-kurs</span>{% endif %}
+          {% if profile.gpa is not None %}<span class="chip chip-purple">GPA {{ profile.gpa|points }}</span>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  <form method="get" class="period-form" data-autosubmit>{% include "ratings/_period_select.html" %}</form>
+</div>
+
+<section class="stats">
+  <div class="stat"><span class="tile tile-orange">{% icon "coins" %}</span><div><div class="label">Jami ball</div><div class="value">{{ row.total|points }}<small>/ 100</small></div></div></div>
+  <div class="stat"><span class="tile tile-purple">{% icon "trophy" %}</span><div><div class="label">Fakultetdagi o‘rin</div><div class="value">{% if row %}{{ row.rank }}<small>/ {{ faculty_size }}</small>{% else %}–{% endif %}</div></div></div>
+  <div class="stat"><span class="tile tile-green">{% icon "award" %}</span><div><div class="label">Tasdiqlangan yutuqlar</div><div class="value">{{ row.approved|default:0 }}</div></div></div>
+  <div class="stat"><span class="tile tile-blue">{% icon "calendar" %}</span><div><div class="label">Davr</div><div class="value" style="font-size:18px">{{ period.label }}</div></div></div>
+</section>
+
+<div class="grid-2" style="margin-top:24px">
+  <section class="panel">
+    <div class="panel-head"><h2>Mezonlar bo‘yicha</h2></div>
+    <div class="bars">
+      {% for r in bars %}
+      <div class="bar-row">
+        <div class="name">{{ r.criterion.short_title }}<small>{{ r.criterion.get_input_mode_display }}</small></div>
+        <div class="bar{% if r.criterion.input_mode == 'auto' %} is-auto{% elif r.criterion.input_mode == 'manual' %} is-manual{% endif %}" style="--fill: {{ r.percent }}%" role="img" aria-label="{{ r.criterion.short_title }}: {{ r.points|points }} / {{ r.max }}"><i></i></div>
+        <div class="score">{{ r.points|points }} <span>/ {{ r.max }}</span></div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  <div class="stack">
+    <section class="panel">
+      <div class="panel-head"><h2>Yutuqlar</h2><span class="subtle">{{ achievements|length }} ta</span></div>
+      {% if achievements %}
+      <ul class="list ach-list compact">
+        {% for a in achievements %}
+        <li><div class="grow"><a class="title stretched" href="{% url 'achievements:detail' a.pk %}">{{ a.title }}</a><div class="meta">{{ a.criterion.short_title }} · {{ a.event_date|date:"d.m.Y" }}</div></div>
+          {% if a.status == "approved" %}<span class="pts">+{{ a.points|points }}</span>{% endif %}<span class="status status-{{ a.status }}">{{ a.get_status_display }}</span></li>
+        {% endfor %}
+      </ul>
+      {% else %}<div class="empty compact"><p>Bu davrda yutuq yo‘q.</p></div>{% endif %}
+    </section>
+    {% if manual %}
+    <section class="panel">
+      <div class="panel-head"><h2>Mas’ul qo‘ygan ballar</h2></div>
+      <ul class="list compact">{% for m in manual %}<li><div class="grow"><div class="title">{{ m.criterion.short_title }}</div><div class="meta">{{ m.given_by.short_name|default:"" }}, {{ m.updated_at|date:"d.m.Y" }}</div></div><b class="total-pill">{{ m.points|points }}</b></li>{% endfor %}</ul>
+    </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

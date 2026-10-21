@@ -1,0 +1,38 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}Mezonlar{% endblock %}
+{% block crumb %}Mezonlar{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Baholash mezonlari</h1>
+    <p>Faol mezonlar maksimal ballari yig‘indisi 100 bo‘lishi shart. Saqlangach joriy semestr ballari qayta hisoblanadi; yopilgan semestrlar o‘zgarmaydi.</p>
+  </div>
+</div>
+<form method="post" class="panel" data-busy-form>
+  {% csrf_token %}{{ formset.management_form }}
+  {% if formset.non_form_errors %}<div class="panel-body" style="padding-bottom:0"><div class="alert alert-error" role="alert">{% icon "alert" %}<div>{% for e in formset.non_form_errors %}<div>{{ e }}</div>{% endfor %}</div></div></div>{% endif %}
+  <div class="panel-head"><h2>Mezonlar</h2><span class="subtle">Hozirgi yig‘indi: <b data-crit-total>{{ total }}</b> / 100</span></div>
+  <div class="table-wrap">
+    <table class="table crit-table" data-crit-table>
+      <thead><tr><th scope="col">Tartib</th><th scope="col">Mezon</th><th scope="col">Qisqa nomi</th><th scope="col">Usul</th><th scope="col" class="c">Maks. ball</th><th scope="col" class="c">Faol</th><th></th></tr></thead>
+      <tbody>
+        {% for f in formset %}{% with c=f.instance %}
+        <tr>
+          <td>{{ f.id }}<input class="score-input" type="number" name="{{ f.order.html_name }}" value="{{ f.order.value }}" min="0" max="99" aria-label="Tartib"></td>
+          <th scope="row"><span class="crit-name"><span class="tile tile-orange crit-ico sm">{% icon c|criterion_icon %}</span>{{ c.title|truncatechars:70 }}</span></th>
+          <td class="field{% if f.short_title.errors %} has-error{% endif %}"><input type="text" name="{{ f.short_title.html_name }}" value="{{ f.short_title.value }}" maxlength="40" aria-label="Qisqa nomi">{% for e in f.short_title.errors %}<span class="error">{{ e }}</span>{% endfor %}</td>
+          <td><span class="chip{% if c.input_mode == 'upload' %} chip-orange{% elif c.input_mode == 'manual' %} chip-blue{% else %} chip-purple{% endif %}">{{ c.get_input_mode_display }}</span></td>
+          <td class="c{% if f.max_points.errors %} has-error{% endif %}"><input class="score-input" type="number" name="{{ f.max_points.html_name }}" value="{{ f.max_points.value }}" min="1" max="100" data-crit-max aria-label="Maksimal ball">{% for e in f.max_points.errors %}<span class="error">{{ e }}</span>{% endfor %}</td>
+          <td class="c"><input class="switch" type="checkbox" name="{{ f.is_active.html_name }}"{% if f.is_active.value %} checked{% endif %} data-crit-active aria-label="Faol"></td>
+          <td><a class="btn btn-ghost" href="{% url 'achievements:criterion_edit' c.pk %}">{% icon "edit" %}Darajalar</a></td>
+        </tr>
+        {% endwith %}{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="form-actions sticky-actions">
+    <span class="subtle">Baholash usulini (yuklash, qo‘lda, avtomatik) o‘zgartirish tarixiy ballarni buzadi, shuning uchun bu yerda o‘zgartirilmaydi.</span>
+    <button class="btn btn-primary" type="submit">{% icon "tick" %}Saqlash va qayta hisoblash</button>
+  </div>
+</form>
+{% endblock %}

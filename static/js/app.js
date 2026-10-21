@@ -186,6 +186,26 @@
     input.addEventListener("input", check);
   });
 
+
+  // ---------- Mezonlar muharriri: faol mezonlar yig'indisini jonli ko'rsatish ----------
+  var critTable = document.querySelector("[data-crit-table]");
+  if (critTable) {
+    var totalEl = document.querySelector("[data-crit-total]");
+    var recount = function () {
+      var sum = 0;
+      critTable.querySelectorAll("tbody tr").forEach(function (tr) {
+        var on = tr.querySelector("[data-crit-active]");
+        var max = tr.querySelector("[data-crit-max]");
+        if (on && on.checked && max) sum += parseInt(max.value, 10) || 0;
+      });
+      totalEl.textContent = sum;
+      totalEl.classList.toggle("is-off", sum !== 100);
+    };
+    critTable.addEventListener("input", recount);
+    critTable.addEventListener("change", recount);
+    recount();
+  }
+
   // Toast xabarlari
   document.querySelectorAll("[data-toast]").forEach(function (t) {
     var close = function () { t.remove(); };

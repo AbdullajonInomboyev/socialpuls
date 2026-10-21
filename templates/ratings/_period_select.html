@@ -1,0 +1,4 @@
+<label for="davr" class="sr-only">Davr</label>
+<select id="davr" name="davr">
+  {% for p in periods %}<option value="{{ p.key }}"{% if p.key == period.key %} selected{% endif %}>{{ p.label }}</option>{% endfor %}
+</select>

@@ -1,0 +1,75 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}Reyting{% endblock %}
+{% block crumb %}Reyting{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Reyting</h1>
+    <p>{{ scope_label }}{% if period %}. {{ period.label }}{% if not period.semester %}: semestrlar o‘rtachasi{% endif %}{% endif %}.</p>
+  </div>
+  <div class="head-actions">
+    <a class="btn btn-secondary" href="{% url 'ratings:export' 'excel' %}?{{ keep }}">{% icon "download" %}Excel</a>
+    <a class="btn btn-secondary" href="{% url 'ratings:export' 'pdf' %}?{{ keep }}">{% icon "file" %}PDF</a>
+  </div>
+</div>
+
+<form method="get" class="filters panel" data-autosubmit role="search">
+  <div class="field">{% include "ratings/_period_select.html" %}</div>
+  {% if faculties %}
+  <div class="field"><label for="f-fak" class="sr-only">Fakultet</label>
+    <select id="f-fak" name="fakultet"><option value="">Barcha fakultetlar</option>
+      {% for x in faculties %}<option value="{{ x.pk }}"{% if x.pk == faculty %} selected{% endif %}>{{ x.name }}</option>{% endfor %}
+    </select></div>
+  {% endif %}
+  {% if groups %}
+  <div class="field"><label for="f-gr" class="sr-only">Guruh</label>
+    <select id="f-gr" name="guruh"><option value="">Barcha guruhlar</option>
+      {% for g in groups %}<option value="{{ g.pk }}"{% if g.pk == group %} selected{% endif %}>{{ g.name }}</option>{% endfor %}
+    </select></div>
+  {% endif %}
+  <div class="field"><label for="f-kurs" class="sr-only">Kurs</label>
+    <select id="f-kurs" name="kurs"><option value="">Barcha kurslar</option>
+      {% for k in "123456" %}<option value="{{ k }}"{% if k|add:0 == course %} selected{% endif %}>{{ k }}-kurs</option>{% endfor %}
+    </select></div>
+  <div class="field grow"><label for="f-q" class="sr-only">Qidirish</label>
+    <div class="input-icon">{% icon "search" %}<input id="f-q" type="search" name="q" value="{{ q }}" placeholder="F.I.Sh. yoki HEMIS ID"></div></div>
+  <button class="btn btn-secondary" type="submit">{% icon "filter" %}Ko‘rsatish</button>
+</form>
+
+<section class="stats" aria-label="Tanlangan ro‘yxat">
+  <div class="stat"><span class="tile tile-purple">{% icon "users" %}</span><div><div class="label">Reytingda</div><div class="value">{{ stats.count }}</div><div class="trend">{{ selection|default:"talaba" }}</div></div></div>
+  <div class="stat"><span class="tile tile-blue">{% icon "chart" %}</span><div><div class="label">O‘rtacha ball</div><div class="value">{{ stats.avg|points }}<small>/ 100</small></div></div></div>
+  <div class="stat"><span class="tile tile-orange">{% icon "trophy" %}</span><div><div class="label">Eng yuqori ball</div><div class="value">{{ stats.best|points }}</div></div></div>
+  <div class="stat"><span class="tile tile-green">{% icon "award" %}</span><div><div class="label">Faol talabalar</div><div class="value">{{ stats.active }}</div><div class="trend">kamida 1 yutug‘i tasdiqlangan</div></div></div>
+</section>
+
+<section class="panel" style="margin-top:24px">
+  <div class="panel-head"><h2>Talabalar ro‘yxati</h2><span class="subtle">{% if q %}“{{ q }}” bo‘yicha {{ page.paginator.count }} ta · {% endif %}O‘rin tanlangan ro‘yxat ichida</span></div>
+  {% if page.object_list %}
+  <div class="table-wrap">
+    <table class="table rating-table">
+      <thead><tr>
+        <th scope="col" class="rank-col">O‘rin</th><th scope="col">Talaba</th><th scope="col">Guruh</th><th scope="col" class="c">Kurs</th>
+        {% for c in criteria %}<th scope="col" class="c crit-col" title="{{ c.title }}"><span class="crit-head">{% icon c|criterion_icon %}</span><small>{{ c.short_title|truncatechars:12 }}</small></th>{% endfor %}
+        <th scope="col" class="c">Jami</th>
+      </tr></thead>
+      <tbody>
+        {% for r in page.object_list %}
+        <tr>
+          <td class="rank-col"><span class="rank{% if r.rank <= 3 %} rank-{{ r.rank }}{% endif %}">{{ r.rank }}</span></td>
+          <th scope="row"><a class="t-name" href="{% url 'ratings:student' r.student.pk %}{% if period %}?davr={{ period.key }}{% endif %}">{{ r.student.full_name }}</a><span class="subtle">{{ r.profile.faculty.short_name|default:r.profile.faculty.name }}</span></th>
+          <td class="nowrap">{{ r.profile.group.name|default:"–" }}</td>
+          <td class="c">{{ r.profile.course|default:"–" }}</td>
+          {% for v in r.cells %}<td class="c num cell-v{% if not v %} zero{% endif %}">{{ v|points }}</td>{% endfor %}
+          <td class="c"><b class="total-pill">{{ r.total|points }}</b></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty"><span class="tile tile-blue">{% icon "list" %}</span><h3>Ro‘yxat bo‘sh</h3><p>Bu davr va filtrlar bo‘yicha hisoblangan ball topilmadi.</p></div>
+  {% endif %}
+</section>
+{% include "partials/pager.html" %}
+{% endblock %}

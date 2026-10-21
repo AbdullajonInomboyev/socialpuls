@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import criteria_views, views
 
 app_name = "achievements"
 
@@ -13,4 +13,6 @@ urlpatterns = [
     path("fayl/<int:pk>/", views.file_view, name="file"),
     path("tekshiruv/", views.queue, name="queue"),
     path("baholash/", views.manual_scores, name="manual"),
+    path("sozlamalar/mezonlar/", criteria_views.criteria_list, name="criteria"),
+    path("sozlamalar/mezonlar/<int:pk>/", criteria_views.criterion_edit, name="criterion_edit"),
 ]

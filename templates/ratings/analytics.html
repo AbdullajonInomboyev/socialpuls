@@ -1,0 +1,92 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}Tahlil{% endblock %}
+{% block crumb %}Tahlil{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Tahlil</h1>
+    <p>{{ scope_label }}. {{ period.label }}{% if period and not period.semester %}: semestrlar o‘rtachasi{% endif %}.</p>
+  </div>
+  <form method="get" class="period-form" data-autosubmit>{% include "ratings/_period_select.html" %}<noscript><button class="btn btn-secondary">Ko‘rsatish</button></noscript></form>
+</div>
+
+<div class="stack">
+  <section class="stats" aria-label="Asosiy ko‘rsatkichlar">
+    <div class="stat"><span class="tile tile-purple">{% icon "users" %}</span><div><div class="label">Talabalar</div><div class="value">{{ students_total }}</div><div class="trend">{{ stats.count }} tasi reytingda</div></div></div>
+    <div class="stat"><span class="tile tile-green">{% icon "activity" %}</span><div><div class="label">Faollik ulushi</div><div class="value">{{ active_pct }}<small>%</small></div><div class="trend">{{ stats.active }} talabaning yutug‘i tasdiqlangan</div></div></div>
+    <div class="stat"><span class="tile tile-blue">{% icon "chart" %}</span><div><div class="label">O‘rtacha ball</div><div class="value">{{ stats.avg|points }}<small>/ 100</small></div></div></div>
+    <div class="stat"><span class="tile tile-orange">{% icon "award" %}</span><div><div class="label">Yuborilgan yutuqlar</div><div class="value">{{ status_total }}</div><div class="trend">{{ statuses.1.n }} tasi tekshiruvda</div></div></div>
+  </section>
+
+  <div class="grid-halves">
+    <section class="panel" aria-labelledby="cmp-t">
+      <div class="panel-head"><h2 id="cmp-t">{{ compare_title }}: o‘rtacha ball</h2><span class="subtle">100 balldan</span></div>
+      {% if compare %}
+      <div class="bars">
+        {% for x in compare %}
+        <div class="bar-row">
+          <div class="name">{{ x.label }}<small>{{ x.n }} talaba</small></div>
+          <div class="bar" role="img" aria-label="{{ x.label }}: {{ x.avg|points }} ball"><i style="--fill: {{ x.avg|percent_of:100 }}%"></i></div>
+          <div class="score">{{ x.avg|points }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}<div class="empty"><p>Ma’lumot yo‘q.</p></div>{% endif %}
+    </section>
+
+    <section class="panel" aria-labelledby="crit-t">
+      <div class="panel-head"><h2 id="crit-t">Mezonlar bo‘yicha bajarilish</h2><span class="subtle">o‘rtacha ball / maksimum</span></div>
+      <div class="bars">
+        {% for x in crit %}
+        <div class="bar-row">
+          <div class="name">{{ x.c.short_title }}</div>
+          <div class="bar{% if x.c.input_mode == 'auto' %} is-auto{% elif x.c.input_mode == 'manual' %} is-manual{% endif %}" role="img" aria-label="{{ x.c.short_title }}: {{ x.avg|points }} / {{ x.c.max_points }}"><i style="--fill: {{ x.pct }}%"></i></div>
+          <div class="score">{{ x.avg|points }} <span>/ {{ x.c.max_points }}</span></div>
+        </div>
+        {% endfor %}
+      </div>
+      {% if weakest %}<p class="insight">{% icon "info" %}<span>Eng past bajarilish: <b>{{ weakest.c.short_title }}</b> ({{ weakest.pct }}%). Shu yo‘nalishda tadbirlar ko‘paytirilsa, umumiy ball tez o‘sadi.</span></p>{% endif %}
+    </section>
+  </div>
+
+  <div class="grid-halves">
+    <section class="panel" aria-labelledby="hist-t">
+      <div class="panel-head"><h2 id="hist-t">Ball taqsimoti</h2><span class="subtle">talabalar soni</span></div>
+      <div class="cols-wrap">
+        <div class="cols" style="--n: {{ histogram|length }}">
+          {% for b in histogram %}
+          <div class="col-slot"><span class="col" style="--h: {{ b.pct }}%" tabindex="0" role="img" aria-label="{{ b.label }} ball: {{ b.n }} talaba" data-tip="{{ b.label }} ball: {{ b.n }}"></span></div>
+          {% endfor %}
+        </div>
+        <div class="cols-axis" style="--n: {{ histogram|length }}">{% for b in histogram %}<span>{{ b.label }}</span>{% endfor %}</div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="mon-t">
+      <div class="panel-head"><h2 id="mon-t">Tasdiqlangan yutuqlar oylar bo‘yicha</h2><span class="subtle">tadbir sanasi bo‘yicha</span></div>
+      <div class="cols-wrap">
+        <div class="cols" style="--n: {{ monthly|length }}">
+          {% for m in monthly %}
+          <div class="col-slot"><span class="col col-blue" style="--h: {{ m.pct }}%" tabindex="0" role="img" aria-label="{{ m.full }}: {{ m.n }} ta" data-tip="{{ m.full }}: {{ m.n }} ta"></span></div>
+          {% endfor %}
+        </div>
+        <div class="cols-axis" style="--n: {{ monthly|length }}">{% for m in monthly %}<span>{{ m.label }}</span>{% endfor %}</div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel" aria-labelledby="st-t">
+    <div class="panel-head"><h2 id="st-t">Yutuqlar holati</h2><span class="subtle">jami {{ status_total }} ta</span></div>
+    <div class="panel-body">
+      {% if status_total %}
+      <div class="stacked" role="img" aria-label="{% for s in statuses %}{{ s.label }} {{ s.n }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+        {% for s in statuses %}{% if s.n %}<span class="seg seg-{{ s.key }}" style="--w: {{ s.pct }}%" title="{{ s.label }}: {{ s.n }}"></span>{% endif %}{% endfor %}
+      </div>
+      <ul class="legend legend-start">
+        {% for s in statuses %}<li><span class="status status-{{ s.key }}">{{ s.label }}</span> <b>{{ s.n }}</b></li>{% endfor %}
+      </ul>
+      {% else %}<div class="empty compact"><p>Bu davrda yutuq yuborilmagan.</p></div>{% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

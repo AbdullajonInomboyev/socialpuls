@@ -10,6 +10,7 @@ urlpatterns = [
     path("", include("accounts.urls")),
     path("eslatmalar/", include("notifications.urls")),
     path("", include("achievements.urls")),
+    path("", include("ratings.urls")),
     path("", include("core.urls")),
 ]
 

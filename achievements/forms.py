@@ -154,3 +154,49 @@ class ReviewForm(forms.Form):
 def version_of(achievement):
     """Bir vaqtda ikki mas'ul baholaganda ustma-ust yozilmasligi uchun."""
     return f"{achievement.updated_at.timestamp():.6f}"
+
+
+class CriterionRowForm(forms.ModelForm):
+    class Meta:
+        model = Criterion
+        fields = ["short_title", "max_points", "order", "is_active"]
+        widgets = {
+            "short_title": forms.TextInput(attrs={"maxlength": 40}),
+            "max_points": forms.NumberInput(attrs={"min": 1, "max": 100, "inputmode": "numeric"}),
+            "order": forms.NumberInput(attrs={"min": 0, "max": 99, "inputmode": "numeric"}),
+        }
+
+
+class BaseCriterionFormSet(forms.BaseModelFormSet):
+    def clean(self):
+        super().clean()
+        if any(self.errors):
+            return
+        total = sum(f.cleaned_data["max_points"] for f in self.forms if f.cleaned_data.get("is_active"))
+        if total != 100:
+            raise ValidationError(f"Faol mezonlar maksimal ballari yig‘indisi 100 bo‘lishi kerak, hozir {total}.")
+
+
+CriterionFormSet = forms.modelformset_factory(Criterion, form=CriterionRowForm, formset=BaseCriterionFormSet, extra=0)
+
+
+class CriterionDetailForm(forms.ModelForm):
+    class Meta:
+        model = Criterion
+        fields = ["title", "short_title", "description"]
+        widgets = {"description": forms.Textarea(attrs={"rows": 3})}
+
+
+class BaseLevelFormSet(forms.BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        for f in self.forms:
+            if f.cleaned_data and not f.cleaned_data.get("DELETE") and f.cleaned_data.get("points") is not None:
+                if f.cleaned_data["points"] > self.instance.max_points:
+                    f.add_error("points", f"Mezon maksimumidan ({self.instance.max_points}) oshmasin.")
+
+
+LevelFormSet = forms.inlineformset_factory(
+    Criterion, CriterionLevel, formset=BaseLevelFormSet, fields=["title", "points", "order"], extra=2, can_delete=True,
+    widgets={"points": forms.NumberInput(attrs={"step": "0.5", "min": 0}), "order": forms.NumberInput(attrs={"min": 0})},
+)

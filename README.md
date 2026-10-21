@@ -49,6 +49,20 @@ location /protected/ {
 client_max_body_size 60m;
 ```
 
+## Reyting, tahlil va hisobotlar (3-bosqich)
+
+* `Reyting` (xodimlar): davr (semestr yoki butun o‘quv yili = semestrlar o‘rtachasi), fakultet, guruh, kurs va qidiruv.
+  O‘rin tanlangan ro‘yxat ichida hisoblanadi, teng ballilar bir xil o‘rinda (1, 1, 3). Har kim faqat o‘z doirasini ko‘radi.
+* `Excel` va `PDF`: ekrandagi filtrlar bilan yuklab olinadi, har yuklash audit jurnaliga yoziladi. PDF Outfit shriftida
+  (`reports/fonts`, OFL litsenziyasi), 3000 qatordan ko‘pi uchun Excel tavsiya etiladi.
+* `TOP-10`: hamma foydalanuvchiga; talaba o‘z o‘rnini va TOP-10 gacha qancha ball yetishmasligini ko‘radi.
+* `Tahlil`: faollik ulushi, fakultet (yoki guruh) kesimida o‘rtacha ball, mezonlar bajarilishi, ball taqsimoti,
+  oylar bo‘yicha tasdiqlangan yutuqlar, yutuqlar holati.
+* `Mezonlar` (faqat rahbariyat): nom, maksimal ball, tartib, faollik va darajalar. Faol mezonlar yig‘indisi 100 bo‘lishi
+  shart; saqlangach joriy semestr ballari bir necha so‘rov bilan qayta hisoblanadi (`ratings.services.recalculate_semester`).
+* Ochiq statistika (OTM sayti uchun): `GET /api/ochiq/statistika/`, JSON, 10 daqiqa keshlanadi, `Tizim sozlamalari`da
+  o‘chirsa bo‘ladi. TOP-10 da faqat familiya va ism bosh harfi beriladi.
+
 ## Testlar
 
 ```bash

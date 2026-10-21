@@ -1,0 +1,14 @@
+{% load ui %}{% if rows %}
+<ol class="top-list">
+  {% for r in rows %}
+  <li{% if r.student.pk == user.pk %} class="is-me"{% endif %}>
+    <span class="rank{% if r.rank <= 3 %} rank-{{ r.rank }}{% endif %}">{{ r.rank }}</span>
+    <div class="grow"><div class="t-name">{{ r.student.full_name }}</div>
+      <div class="subtle">{{ r.profile.group.name|default:"" }}{% if r.profile.course %} · {{ r.profile.course }}-kurs{% endif %} · {{ r.approved }} ta yutuq</div></div>
+    <b class="total-pill">{{ r.total|points }}</b>
+  </li>
+  {% endfor %}
+</ol>
+{% else %}
+<div class="empty"><p>Bu davr uchun hali ball hisoblanmagan.</p></div>
+{% endif %}

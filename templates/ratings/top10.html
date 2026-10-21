@@ -1,0 +1,45 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}TOP-10{% endblock %}
+{% block crumb %}TOP-10{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1 class="page-title">Eng faol talabalar</h1>
+    <p>{{ period.label }}{% if period and not period.semester %}: semestrlar o‘rtachasi{% endif %}. Reytingda {{ total_count }} talaba.</p>
+  </div>
+  <form method="get" class="period-form" data-autosubmit>{% include "ratings/_period_select.html" %}<noscript><button class="btn btn-secondary">Ko‘rsatish</button></noscript></form>
+</div>
+
+{% if me %}
+<div class="me-banner"><span class="tile tile-orange">{% icon "trophy" %}</span>
+  <div><b>Sizning o‘rningiz: {{ me.rank }} / {{ total_count }}</b><span>Jami {{ me.total|points }} ball. {% if me.rank > 10 %}TOP-10 ga kirish uchun yana {{ gap|points }} ball kerak.{% else %}Siz TOP-10 dasiz!{% endif %}</span></div>
+</div>
+{% endif %}
+
+{% if podium %}
+<section class="podium" aria-label="Birinchi uch o‘rin">
+  {% for r in podium %}
+  <article class="pod pod-{{ r.rank }}">
+    <span class="medal">{{ r.rank }}</span>
+    {% if r.profile.image_url %}<img class="avatar avatar-round" src="{{ r.profile.image_url }}" alt="">{% else %}<span class="avatar avatar-round" aria-hidden="true">{{ r.student.initials }}</span>{% endif %}
+    <div class="pod-name">{{ r.student.short_name }}</div>
+    <div class="subtle">{{ r.profile.faculty.short_name|default:r.profile.faculty.name }}{% if r.profile.course %}, {{ r.profile.course }}-kurs{% endif %}</div>
+    <div class="pod-score">{{ r.total|points }}<small> ball</small></div>
+  </article>
+  {% endfor %}
+</section>
+{% endif %}
+
+<div class="grid-halves" style="margin-top:24px">
+  <section class="panel">
+    <div class="panel-head"><h2>Universitet bo‘yicha TOP-10</h2></div>
+    {% include "ratings/_top_list.html" with rows=uni %}
+  </section>
+  {% if faculty %}
+  <section class="panel">
+    <div class="panel-head"><h2>{{ faculty.name }}</h2><span class="subtle">TOP-10</span></div>
+    {% include "ratings/_top_list.html" with rows=fac_rows %}
+  </section>
+  {% endif %}
+</div>
+{% endblock %}

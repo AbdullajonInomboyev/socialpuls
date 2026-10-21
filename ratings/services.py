@@ -135,3 +135,66 @@ def averaged_breakdown(student, academic_year, criteria):
         out[c.code] = str(q2(sum(vals) / len(vals)))
     return out
 
+
+
+@transaction.atomic
+def recalculate_semester(semester):
+    """Semestrdagi barcha ballarni bir necha so'rov bilan qayta hisoblaydi (mezon o'zgarganda, sinxrondan keyin).
+
+    Bitta talaba uchun `recalculate` bilan bir xil qoidalar; natija bulk_update bilan yoziladi.
+    """
+    from accounts.models import Role, StudentProfile
+
+    criteria = list(Criterion.objects.filter(is_active=True))
+    approved, counts = {}, {}
+    for sid, code, s, n in (
+        Achievement.objects.filter(semester=semester, status=Achievement.Status.APPROVED)
+        .values_list("student_id", "criterion__code")
+        .annotate(s=Sum("points"), n=Count("id"))
+    ):
+        approved[(sid, code)] = s
+        counts[sid] = counts.get(sid, 0) + n
+    manual = {
+        (sid, code): pts
+        for sid, code, pts in ManualScore.objects.filter(semester=semester).values_list("student_id", "criterion__code", "points")
+    }
+    student_ids = set(StudentScore.objects.filter(semester=semester).values_list("student_id", flat=True))
+    student_ids |= {k[0] for k in approved} | {k[0] for k in manual}
+    profiles = {
+        p.user_id: p
+        for p in StudentProfile.objects.filter(user_id__in=student_ids, user__role=Role.STUDENT).only(
+            "user_id", "gpa", "faculty_id", "group_id"
+        )
+    }
+    existing = {s.student_id: s for s in StudentScore.objects.select_for_update().filter(semester=semester)}
+    live_gpa = semester.is_current and not semester.is_closed
+
+    to_create, to_update = [], []
+    for sid in student_ids:
+        profile = profiles.get(sid)
+        score = existing.get(sid) or StudentScore(student_id=sid, semester=semester)
+        if live_gpa and profile is not None:
+            gpa = profile.gpa
+        else:
+            gpa = score.gpa_snapshot if score.gpa_snapshot is not None else getattr(profile, "gpa", None)
+        breakdown = {}
+        for c in criteria:
+            if c.input_mode == Criterion.InputMode.AUTO:
+                value = gpa_points(gpa, c.max_points)
+            elif c.input_mode == Criterion.InputMode.MANUAL:
+                value = Decimal(manual.get((sid, c.code)) or 0)
+            else:
+                value = Decimal(approved.get((sid, c.code)) or 0)
+            breakdown[c.code] = str(q2(min(value, Decimal(c.max_points))))
+        score.breakdown = breakdown
+        score.total = q2(sum(Decimal(v) for v in breakdown.values()))
+        score.gpa_snapshot = gpa
+        score.approved_count = counts.get(sid, 0)
+        if profile is not None:
+            score.faculty_id, score.group_id = profile.faculty_id, profile.group_id
+        (to_update if score.pk else to_create).append(score)
+    StudentScore.objects.bulk_create(to_create, batch_size=500)
+    StudentScore.objects.bulk_update(
+        to_update, ["breakdown", "total", "gpa_snapshot", "approved_count", "faculty", "group"], batch_size=500
+    )
+    return len(to_create) + len(to_update)

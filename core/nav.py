@@ -20,11 +20,12 @@ def build_nav(user):
             _item("Bosh sahifa", "core:home", "home"),
             _item("Yutuqlarim", "achievements:my_list", "award", match="/yutuqlar/"),
             _item("Yutuq qo‘shish", "achievements:create", "plus"),
+            _item("TOP-10", "ratings:top10", "trophy"),
             _item("Eslatmalar", "notifications:list", "bell", key="notifications"),
             _item("Profil", "accounts:profile", "user"),
         ]
         items = [i for i in items if i]
-        bottom = [dict(i, label="Qo‘shish") if i["icon"] == "plus" else i for i in items]
+        bottom = [dict(i, label="Qo‘shish") if i["icon"] == "plus" else i for i in items if i["icon"] != "trophy"]
         return [("", items)], bottom
 
     main = [_item("Bosh sahifa", "core:home", "home")]
@@ -35,6 +36,13 @@ def build_nav(user):
         main.append(_item("Yutuqlar", "achievements:queue", "award"))
     main.append(_item("Eslatmalar", "notifications:list", "bell", key="notifications"))
     groups = [("", main)]
+    groups.append(("Reyting", [
+        _item("Reyting", "ratings:rating", "list", match="/reyting/"),
+        _item("TOP-10", "ratings:top10", "trophy"),
+        _item("Tahlil", "ratings:analytics", "chart"),
+    ]))
+    if user.role == Role.LEADERSHIP or user.is_superuser:
+        groups.append(("Sozlamalar", [_item("Mezonlar", "achievements:criteria", "settings", match="/sozlamalar/mezonlar/")]))
     account = [_item("Profil", "accounts:profile", "user")]
     if user.is_superuser:
         account.append(_item("Django admin", "admin:index", "shield"))
