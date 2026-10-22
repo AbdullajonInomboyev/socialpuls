@@ -97,6 +97,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "config.wsgi.application"
 
+if not DEBUG and not env("DATABASE_URL", default=""):
+    # Production'da SQLite ga jimgina o'tib ketmaslik uchun (masalan, hostingda baza ulanmay qolsa).
+    raise ImproperlyConfigured("DATABASE_URL ko'rsatilishi shart (DEBUG=False).")
 DATABASES = {
     "default": env.db("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
 }
