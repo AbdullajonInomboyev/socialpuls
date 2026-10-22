@@ -5,6 +5,7 @@ from django.contrib.auth import logout
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.utils.http import urlencode
 
 from .models import SiteSettings
 
@@ -21,7 +22,7 @@ class SecurityHeadersMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
-        if not request.path.startswith("/admin/"):
+        if not request.path.startswith("/" + settings.ADMIN_URL):
             response.headers.setdefault("Content-Security-Policy", CSP)
         response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
         return response
@@ -30,13 +31,13 @@ class SecurityHeadersMiddleware:
 class MaintenanceModeMiddleware:
     """Texnik xizmat rejimida faqat rahbariyat va moderator ishlay oladi."""
 
-    EXEMPT = ("/static/", "/admin/", "/kirish/", "/chiqish/", "/api/")
+    EXEMPT = ("/static/", "/kirish/", "/chiqish/", "/api/", "/telegram/")
 
     def __init__(self, get_response):
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.path.startswith(self.EXEMPT):
+        if request.path.startswith(self.EXEMPT) or request.path.startswith("/" + settings.ADMIN_URL):
             return self.get_response(request)
         if SiteSettings.load().maintenance_mode:
             user = request.user
@@ -59,7 +60,7 @@ class IdleTimeoutMiddleware:
             if minutes and last and now - last > minutes * 60:
                 logout(request)
                 messages.info(request, f"{minutes} daqiqa harakatsizlik sababli tizimdan chiqdingiz.")
-                return redirect(f"{reverse(settings.LOGIN_URL)}?next={request.path}")
+                return redirect(f"{reverse(settings.LOGIN_URL)}?{urlencode({'next': request.get_full_path()})}")
             if not last or now - last > 30:
                 request.session["last_seen"] = now
         return self.get_response(request)

@@ -36,3 +36,22 @@ def register_failure(ip, login):
 
 def reset(ip, login):
     cache.delete_many(_keys(ip, login)[1:])
+
+
+RESET_WINDOW = 60 * 60
+
+
+def _hit(key, limit):
+    if cache.add(key, 1, RESET_WINDOW):
+        return True
+    try:
+        return cache.incr(key) <= limit
+    except ValueError:  # kalit shu orada muddati tugab o'chgan
+        cache.set(key, 1, RESET_WINDOW)
+        return True
+
+
+def allow_reset(ip, email):
+    ip_ok = _hit(_key("reset-ip", ip or "unknown"), 10)
+    email_ok = _hit(_key("reset-email", email or ""), 3)
+    return ip_ok and email_ok

@@ -1,0 +1,24 @@
+[Unit]
+Description=Social Puls (Ijtimoiy Faollik) gunicorn
+After=network.target postgresql.service
+
+[Service]
+Type=notify
+User=socialpuls
+Group=socialpuls
+WorkingDirectory=/srv/socialpuls
+RuntimeDirectory=socialpuls
+RuntimeDirectoryMode=0755
+ExecStart=/srv/socialpuls/.venv/bin/gunicorn config.wsgi:application -c deploy/gunicorn.conf.py
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=on-failure
+RestartSec=5
+# Qo'shimcha cheklovlar
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+ReadWritePaths=/var/lib/socialpuls /var/log/socialpuls /srv/socialpuls/logs
+
+[Install]
+WantedBy=multi-user.target

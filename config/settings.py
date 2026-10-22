@@ -27,8 +27,13 @@ if not SECRET_KEY:
     else:
         raise ImproperlyConfigured("SECRET_KEY .env faylida ko'rsatilishi shart.")
 
+if not DEBUG and (len(SECRET_KEY) < 40 or SECRET_KEY.lstrip().startswith("#")):
+    raise ImproperlyConfigured("SECRET_KEY juda qisqa yoki noto'g'ri (izoh qiymatga qo'shilib ketgan bo'lishi mumkin).")
+
 ALLOWED_HOSTS = env("ALLOWED_HOSTS") or (["localhost", "127.0.0.1"] if DEBUG else [])
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
+# Django admin manzili; production'da taxmin qilinmaydigan qiymat bering, masalan "boshqaruv-7f3k/".
+ADMIN_URL = (env("ADMIN_URL", default="").strip("/") or "admin") + "/"
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -87,6 +92,8 @@ DATABASES = {
     "default": env.db("DATABASE_URL", default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}"),
 }
 DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)
+# PostgreSQL qayta ishga tushsa, uzilgan doimiy ulanish so'rov boshida aniqlanib qayta ochiladi (500 xato o'rniga).
+DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
 
 AUTH_USER_MODEL = "accounts.User"
 AUTHENTICATION_BACKENDS = [
@@ -164,7 +171,9 @@ EMAIL_PORT = env.int("EMAIL_PORT", default=587)
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
 EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Social Puls <noreply@namdu.uz>")
+EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=15)
+EMAIL_FILE_PATH = env("EMAIL_FILE_PATH", default=str(BASE_DIR / "logs" / "mail"))
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Ijtimoiy Faollik <noreply@namdu.uz>")
 SITE_URL = env("SITE_URL", default="http://localhost:8000")
 
 # --- Telegram ---

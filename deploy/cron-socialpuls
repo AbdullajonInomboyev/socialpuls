@@ -1,0 +1,11 @@
+# /etc/cron.d/socialpuls
+SHELL=/bin/bash
+MAILTO=""
+# Har kecha 02:30: HEMIS sinxronizatsiyasi
+30 2 * * *  socialpuls  cd /srv/socialpuls && .venv/bin/python manage.py hemis_sync >> /var/log/socialpuls/cron.log 2>&1
+# Har oyning 1-kuni 09:00: o'tgan oyda yutuq yuklamaganlarga eslatma (oyiga bir marta)
+0 9 1 * *   socialpuls  cd /srv/socialpuls && .venv/bin/python manage.py send_monthly_reminders >> /var/log/socialpuls/cron.log 2>&1
+# Har kecha 03:15: zaxira nusxa (baza + hujjatlar), 14 kun saqlanadi
+15 3 * * *  socialpuls  /srv/socialpuls/deploy/backup.sh >> /var/log/socialpuls/backup.log 2>&1
+# Har yakshanba: muddati o'tgan sessiyalarni tozalash
+0 4 * * 0   socialpuls  cd /srv/socialpuls && .venv/bin/python manage.py clearsessions

@@ -100,6 +100,13 @@ class PasswordResetView(auth_views.PasswordResetView):
     subject_template_name = "accounts/email/password_reset_subject.txt"
     success_url = reverse_lazy("accounts:password_reset_done")
 
+    def form_valid(self, form):
+        # Xat yuborishni cheklash: bir IP dan soatiga 10 ta, bir manzilga soatiga 3 ta. Javob bir xil, manzil mavjudligi bilinmaydi.
+        if not ratelimit.allow_reset(client_ip(self.request), form.cleaned_data["email"]):
+            log_action(self.request, "password.reset_throttled", "Parol tiklash so‘rovi cheklandi", email=form.cleaned_data["email"][:100])
+            return redirect(self.success_url)
+        return super().form_valid(form)
+
 
 class PasswordResetDoneView(auth_views.PasswordResetDoneView):
     template_name = "accounts/password_reset_done.html"

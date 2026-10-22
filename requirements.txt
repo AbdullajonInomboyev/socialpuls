@@ -3,6 +3,7 @@ django-environ>=0.12
 psycopg[binary]>=3.2
 requests>=2.32
 openpyxl>=3.1
+defusedxml>=0.7  # openpyxl xlsx ichidagi XML hujumlaridan himoya uchun avtomatik ishlatadi
 reportlab>=4.2
 Pillow>=11.0
 gunicorn>=23.0

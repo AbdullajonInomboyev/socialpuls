@@ -3,12 +3,17 @@
 Namangan davlat universiteti talabalarining ijtimoiy faolligini 11 mezon bo'yicha (jami 100 ball) baholash platformasi.
 Django 5.2, server tomonda render qilinadigan sahifalar, PostgreSQL (lokalda SQLite).
 
+Hujjatlar:
+
+* [docs/DEPLOY.md](docs/DEPLOY.md): production’ga o‘rnatish (Nginx, Gunicorn, PostgreSQL, HTTPS, cron, zaxira)
+* [docs/HISOBOT.md](docs/HISOBOT.md): yakuniy hisobot (imkoniyatlar, fayllar, test natijalari, cheklovlar)
+
 ## Lokal ishga tushirish
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env          # keyin .env da: DEBUG=True, HEMIS_MODE=mock, SECRET_KEY=...
+printf 'DEBUG=True\nHEMIS_MODE=mock\n' > .env   # lokal uchun shu ikki qator yetarli (SQLite, konsolga email)
 python manage.py migrate
 python manage.py seed_demo    # demo fakultetlar, xodimlar, talabalar (faqat DEBUG)
 python manage.py runserver
@@ -110,4 +115,7 @@ curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
 python manage.py test tests
 ```
 
-To'liq o'rnatish va production yo'riqnomasi 5-bosqichda qo'shiladi.
+PostgreSQL’da ishga tushirish: `DATABASE_URL=postgres://... python manage.py test tests`.
+
+Birinchi xodim hisobi (production): `python manage.py create_staff --username rahbar --email ... --superuser`.
+Qolgan qadamlar: [docs/DEPLOY.md](docs/DEPLOY.md).

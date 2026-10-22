@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.contrib import admin
+from django.shortcuts import redirect
 from django.urls import include, path
 
 from notifications import views as notif_views
@@ -7,8 +8,19 @@ from notifications import views as notif_views
 admin.site.site_header = "Social Puls boshqaruvi"
 admin.site.site_title = "Social Puls"
 
+
+def _admin_login(request, extra_context=None):
+    # Admin panelga ham faqat asosiy kirish sahifasi orqali (urinishlar cheklovi bilan) kiriladi.
+    from django.urls import reverse
+    from django.utils.http import urlencode
+
+    return redirect(f"{reverse('accounts:login')}?{urlencode({'xodim': 1, 'next': request.GET.get('next', '/')})}")
+
+
+admin.site.login = _admin_login
+
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path(settings.ADMIN_URL, admin.site.urls),
     path("", include("accounts.urls")),
     path("eslatmalar/", include("notifications.urls")),
     path("telegram/webhook/<str:secret>/", notif_views.telegram_webhook, name="telegram_webhook"),
