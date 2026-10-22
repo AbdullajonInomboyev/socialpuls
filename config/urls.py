@@ -26,6 +26,7 @@ urlpatterns = [
     path("telegram/webhook/<str:secret>/", notif_views.telegram_webhook, name="telegram_webhook"),
     path("", include("achievements.urls")),
     path("", include("ratings.urls")),
+    path("", include("portfolio.urls")),
     path("", include("core.urls")),
 ]
 

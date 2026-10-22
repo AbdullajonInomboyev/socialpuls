@@ -6,8 +6,8 @@ Sana: 2026-yil 22-oktabr. Loyiha noldan yozilgan (prototip kodi ishlatilmagan), 
 
 | Rol | Imkoniyatlar |
 | --- | --- |
-| Talaba | HEMIS login/paroli bilan kirish (parol saqlanmaydi), bosh sahifada ball va o‘rin, yutuq yuklash (mezon, daraja, sana, 1–5 hujjat), qoralama, tahrirlash/o‘chirish (tekshiruvgacha), qaytarilganini tuzatib qayta yuborish, TOP-10 va o‘z o‘rni, eslatmalar, Telegram ulash |
-| Tyutor | Faqat biriktirilgan guruhlar: tekshiruv navbati, tasdiqlash/rad etish/qaytarish/izoh, qo‘lda baholash, reyting, tahlil, eksport, ommaviy xabar |
+| Talaba | HEMIS login/paroli bilan kirish (parol saqlanmaydi), bosh sahifada ball va o‘rin, avtomatik portfolio (sahifa va PDF), yutuq yuklash (mezon, daraja, sana, 1–5 hujjat), qoralama, tahrirlash/o‘chirish (tekshiruvgacha), qaytarilganini tuzatib qayta yuborish, TOP-10 va o‘z o‘rni, eslatmalar, Telegram ulash |
+| Tyutor | Faqat biriktirilgan guruhlar: tekshiruv navbati, talaba portfoliosini ko‘rish va yuklab olish, tasdiqlash/rad etish/qaytarish/izoh, qo‘lda baholash, reyting, tahlil, eksport, ommaviy xabar |
 | Fakultet mas’uli | Xuddi shu, o‘z fakulteti doirasida |
 | Rahbariyat | Butun universitet: reyting, tahlil, PDF/Excel, mezonlar muharriri, boshqaruv bo‘limi (yutuqlarni faqat ko‘radi, baholamaydi) |
 | Moderator | HEMIS sinxron va Excel import, xodimlar, tizim sozlamalari, semestrlar, amallar jurnali (rahbariyat hisobiga tegolmaydi) |

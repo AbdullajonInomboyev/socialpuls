@@ -1,0 +1,99 @@
+{% extends "layouts/app.html" %}{% load ui %}
+{% block title %}Portfolio{% if not own %}: {{ pf.student.full_name }}{% endif %}{% endblock %}
+{% block crumb %}{% if own %}Portfolio{% else %}<a href="{% url 'ratings:student' pf.student.pk %}">{{ pf.student.short_name }}</a> / Portfolio{% endif %}{% endblock %}
+{% block content %}
+{% with s=pf.student p=pf.profile cur=pf.current %}
+<div class="page-head">
+  <div class="who-row" style="margin:0">
+    {% if p.image_url %}<img class="avatar avatar-lg" src="{{ p.image_url }}" alt="">{% else %}<span class="avatar avatar-lg" aria-hidden="true">{{ s.initials }}</span>{% endif %}
+    <div>
+      <h1 class="page-title">{{ s.full_name }}</h1>
+      <div class="chips" style="margin-top:6px">
+        {% if p.faculty %}<span class="chip chip-orange">{% icon "building" %}{{ p.faculty.name }}</span>{% endif %}
+        {% if p.group %}<span class="chip chip-orange">{% icon "id" %}{{ p.group.name }}</span>{% endif %}
+        {% if p.course %}<span class="chip chip-blue">{% icon "layers" %}{{ p.course }}-kurs</span>{% endif %}
+        {% if p.gpa is not None %}<span class="chip chip-purple">GPA {{ p.gpa|points }}</span>{% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="head-actions">
+    <a class="btn btn-secondary" href="{% url 'portfolio:pdf' s.pk %}?ochish=1" target="_blank" rel="noopener">{% icon "eye" %}PDF ko‘rish</a>
+    <a class="btn btn-primary" href="{% url 'portfolio:pdf' s.pk %}">{% icon "download" %}Yuklab olish</a>
+  </div>
+</div>
+
+<p class="subtle pf-note">{% icon "info" %}Portfolio tizim tomonidan avtomatik tuziladi: unga faqat tasdiqlangan yutuqlar kiradi va yangi yutuq tasdiqlanishi bilan qo‘shiladi.</p>
+
+<section class="stats">
+  <div class="stat"><span class="tile tile-green">{% icon "award" %}</span><div><div class="label">Tasdiqlangan yutuqlar</div><div class="value">{{ pf.total_approved }}</div></div></div>
+  <div class="stat"><span class="tile tile-blue">{% icon "layers" %}</span><div><div class="label">Faol yo‘nalishlar</div><div class="value">{{ pf.criteria_covered }}</div></div></div>
+  <div class="stat"><span class="tile tile-orange">{% icon "coins" %}</span><div><div class="label">{% if cur %}{{ cur.semester.number }}-semestr bali{% else %}Joriy ball{% endif %}</div><div class="value">{% if cur %}{{ cur.total|points }}<small>/ 100</small>{% else %}–{% endif %}</div></div></div>
+  <div class="stat"><span class="tile tile-purple">{% icon "trophy" %}</span><div><div class="label">Fakultetdagi o‘rin</div><div class="value">{% if cur.faculty_rank %}{{ cur.faculty_rank }}<small>/ {{ cur.faculty_size }}</small>{% else %}–{% endif %}</div></div></div>
+</section>
+
+<div class="grid-2" style="margin-top:24px">
+  <div class="stack">
+    {% for g in pf.groups %}
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="crit-name"><span class="tile tile-orange crit-ico sm">{% icon g.criterion|criterion_icon %}</span>{{ g.criterion.short_title }}</h2>
+        <span class="subtle">{{ g.items|length }} ta · {{ g.points|points }} ball</span>
+      </div>
+      <ul class="list ach-list compact">
+        {% for a in g.items %}
+        <li>
+          <div class="grow">
+            <a class="title stretched" href="{% url 'achievements:detail' a.pk %}">{{ a.title }}</a>
+            <div class="meta">{{ a.event_date|date:"d.m.Y" }}{% if a.level %} · {{ a.level.title }}{% endif %} · {{ a.semester }}{% with n=a.files.all|length %}{% if n %} · {{ n }} ta hujjat{% endif %}{% endwith %}</div>
+          </div>
+          <span class="pts">+{{ a.points|points }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% empty %}
+    <section class="panel">
+      <div class="empty">
+        <span class="tile tile-orange">{% icon "briefcase" %}</span>
+        <h3>Portfolio hali bo‘sh</h3>
+        <p>{% if own %}Yutuqlaringiz tasdiqlangach shu yerda avtomatik paydo bo‘ladi.{% else %}Talabaning tasdiqlangan yutug‘i hali yo‘q.{% endif %}</p>
+        {% if own %}<p style="margin-top:16px"><a class="btn btn-primary" href="{% url 'achievements:my_list' %}">{% icon "award" %}Yutuqlarimga o‘tish</a></p>{% endif %}
+      </div>
+    </section>
+    {% endfor %}
+  </div>
+
+  <div class="stack">
+    {% if cur %}
+    <section class="panel">
+      <div class="panel-head"><h2>Mezonlar bo‘yicha</h2><span class="subtle">{{ cur.semester }}</span></div>
+      <div class="bars">
+        {% for r in pf.bars %}
+        <div class="bar-row">
+          <div class="name">{{ r.criterion.short_title }}</div>
+          <div class="bar{% if r.criterion.input_mode == 'auto' %} is-auto{% elif r.criterion.input_mode == 'manual' %} is-manual{% endif %}" style="--fill: {{ r.percent }}%" role="img" aria-label="{{ r.criterion.short_title }}: {{ r.points|points }} / {{ r.max }}"><i></i></div>
+          <div class="score">{{ r.points|points }} <span>/ {{ r.max }}</span></div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+    {% if pf.semesters %}
+    <section class="panel">
+      <div class="panel-head"><h2>Semestrlar bo‘yicha</h2></div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th scope="col">Semestr</th><th scope="col" class="c">Ball</th><th scope="col" class="c">Fakultetda</th><th scope="col" class="c">Universitetda</th></tr></thead>
+          <tbody>{% for l in pf.semesters %}
+            <tr><td>{{ l.semester }}</td><td class="c num"><b>{{ l.total|points }}</b></td>
+              <td class="c num">{% if l.faculty_rank %}{{ l.faculty_rank }} / {{ l.faculty_size }}{% else %}–{% endif %}</td>
+              <td class="c num">{{ l.university_rank }} / {{ l.university_size }}</td></tr>
+          {% endfor %}</tbody>
+        </table>
+      </div>
+    </section>
+    {% endif %}
+  </div>
+</div>
+{% endwith %}
+{% endblock %}

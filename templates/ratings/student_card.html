@@ -19,7 +19,10 @@
       </div>
     </div>
   </div>
-  <form method="get" class="period-form" data-autosubmit>{% include "ratings/_period_select.html" %}</form>
+  <div class="head-actions">
+    <form method="get" class="period-form" data-autosubmit>{% include "ratings/_period_select.html" %}</form>
+    <a class="btn btn-secondary" href="{% url 'portfolio:detail' student.pk %}">{% icon "briefcase" %}Portfolio</a>
+  </div>
 </div>
 
 <section class="stats">

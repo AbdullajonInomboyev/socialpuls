@@ -674,3 +674,13 @@ p { margin: 0; }
 }
 .panel-foot { padding: var(--s-4) var(--s-5); border-top: 1px solid var(--line); }
 @media (max-width: 720px) { .panel-foot { padding: var(--s-3) var(--s-4); } }
+
+/* ---------- Portfolio ---------- */
+.head-actions { justify-content: flex-end; }
+.pf-note { display: flex; gap: 8px; align-items: center; margin: 0 0 var(--s-5); }
+.pf-note svg { width: 16px; height: 16px; flex: none; color: var(--blue); }
+@media (max-width: 720px) {
+  .head-actions { width: 100%; justify-content: stretch; }
+  .head-actions .btn { flex: 1; justify-content: center; }
+  .pf-note { align-items: flex-start; }
+}

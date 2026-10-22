@@ -19,13 +19,14 @@ def build_nav(user):
         items = [
             _item("Bosh sahifa", "core:home", "home"),
             _item("Yutuqlarim", "achievements:my_list", "award", match="/yutuqlar/"),
-            _item("Yutuq qo‘shish", "achievements:create", "plus"),
+            _item("Portfolio", "portfolio:me", "briefcase", match="/portfolio/"),
             _item("TOP-10", "ratings:top10", "trophy"),
             _item("Eslatmalar", "notifications:list", "bell", key="notifications"),
             _item("Profil", "accounts:profile", "user"),
         ]
         items = [i for i in items if i]
-        bottom = [dict(i, label="Qo‘shish") if i["icon"] == "plus" else i for i in items if i["icon"] != "trophy"]
+        # Yutuq qo'shish tugmasi "Yutuqlarim" sahifasida; pastki panelda 5 ta asosiy bo'lim.
+        bottom = [i for i in items if i["icon"] != "trophy"]
         return [("", items)], bottom
 
     main = [_item("Bosh sahifa", "core:home", "home")]

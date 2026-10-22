@@ -109,6 +109,13 @@ curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
 0 9 1 * *   cd /srv/socialpuls && .venv/bin/python manage.py send_monthly_reminders >> logs/cron.log 2>&1
 ```
 
+## Portfolio
+
+* Har bir talaba uchun tizim avtomatik tuzadi (`portfolio/services.py`): faqat tasdiqlangan yutuqlar mezonlar bo‘yicha,
+  joriy semestr ballari, semestrlar bo‘yicha fakultet va universitetdagi o‘rin. Alohida saqlanmaydi, har ochilganda yangilanadi.
+* Talaba: menyuda `Portfolio`. Xodimlar: talaba kartasidagi `Portfolio` tugmasi, faqat o‘z doirasidagi talabalar.
+* `PDF ko‘rish` / `Yuklab olish` (A4). Xodim yuklab olgani amallar jurnaliga yoziladi.
+
 ## Testlar
 
 ```bash
