@@ -1,5 +1,7 @@
 import logging
 
+from django.conf import settings
+
 from .models import ActionLog
 
 logger = logging.getLogger("socialpuls.audit")
@@ -8,6 +10,12 @@ logger = logging.getLogger("socialpuls.audit")
 def client_ip(request):
     if request is None:
         return None
+    if settings.CLIENT_IP_SOURCE == "x-forwarded-for":
+        # Proksi o'zi ko'rgan manzilni ro'yxat oxiriga qo'shadi; boshidagilarni mijoz soxtalashtirishi mumkin.
+        hops = [h.strip() for h in request.META.get("HTTP_X_FORWARDED_FOR", "").split(",") if h.strip()]
+        if len(hops) >= settings.PROXY_COUNT:
+            return hops[-settings.PROXY_COUNT]
+        return request.META.get("REMOTE_ADDR") or None
     # Nginx orqasida X-Real-IP ishonchli; X-Forwarded-For ni mijoz soxtalashtirishi mumkin.
     ip = request.META.get("HTTP_X_REAL_IP") or request.META.get("REMOTE_ADDR")
     return ip or None

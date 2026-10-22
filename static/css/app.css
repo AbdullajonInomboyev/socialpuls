@@ -684,3 +684,8 @@ p { margin: 0; }
   .head-actions .btn { flex: 1; justify-content: center; }
   .pf-note { align-items: flex-start; }
 }
+
+/* Namoyish sayti */
+.demo-logins { text-align: left; line-height: 1.6; }
+.demo-logins code { font-family: inherit; font-weight: 600; background: var(--surface); padding: 1px 6px; border-radius: 6px; white-space: nowrap; }
+.demo-banner { margin-bottom: var(--s-5); }

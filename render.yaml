@@ -1,0 +1,40 @@
+# Render Blueprint: namoyish (demo) sayti. Render panelida "New > Blueprint" orqali shu repozitoriy tanlanadi.
+# Batafsil: docs/RENDER.md
+databases:
+  - name: socialpuls-db
+    plan: free
+    region: frankfurt
+    databaseName: socialpuls
+    user: socialpuls
+
+services:
+  - type: web
+    name: socialpuls
+    runtime: python
+    plan: free
+    region: frankfurt
+    buildCommand: ./deploy/render/build.sh
+    startCommand: ./deploy/render/start.sh
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: socialpuls-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DEMO_SITE
+        value: "True"
+      - key: HEMIS_MODE
+        value: mock
+      - key: CACHE_URL
+        value: dbcache://socialpuls_cache
+      - key: CLIENT_IP_SOURCE
+        value: x-forwarded-for
+      - key: PROXY_COUNT
+        value: "1"
+      - key: EMAIL_BACKEND
+        value: django.core.mail.backends.console.EmailBackend
+      - key: WEB_CONCURRENCY
+        value: "2"

@@ -30,3 +30,11 @@ def hemis_token_check(app_configs, **kwargs):
         return [Warning("HEMIS_API_TOKEN o'rnatilmagan.", hint="Talabalar ro'yxatini sinxronlash uchun HEMIS ma'lumot API tokeni kerak.",
                         id="socialpuls.W003")]
     return []
+
+
+@register(Tags.security, deploy=True)
+def demo_site_check(app_configs, **kwargs):
+    if settings.DEMO_SITE:
+        return [Warning("DEMO_SITE=True: sinov talabalari va demo ma'lumotlar yoqilgan.",
+                        hint="Haqiqiy foydalanish uchun DEMO_SITE=False va HEMIS_MODE=live qiling.", id="socialpuls.W004")]
+    return []

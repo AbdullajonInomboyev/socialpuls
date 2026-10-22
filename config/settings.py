@@ -32,6 +32,14 @@ if not DEBUG and (len(SECRET_KEY) < 40 or SECRET_KEY.lstrip().startswith("#")):
 
 ALLOWED_HOSTS = env("ALLOWED_HOSTS") or (["localhost", "127.0.0.1"] if DEBUG else [])
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
+# Render o'z domenini (masalan socialpuls.onrender.com) shu o'zgaruvchida beradi.
+RENDER_EXTERNAL_HOSTNAME = env("RENDER_EXTERNAL_HOSTNAME", default="")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{RENDER_EXTERNAL_HOSTNAME}")
+# Namoyish sayti: sinov talabalari (HEMIS mock) va demo ma'lumotlarga ruxsat beradi, har sahifada ogohlantirish ko'rinadi.
+# Haqiqiy foydalanishda hech qachon yoqilmaydi.
+DEMO_SITE = env.bool("DEMO_SITE", default=False)
 # Django admin manzili; production'da taxmin qilinmaydigan qiymat bering, masalan "boshqaruv-7f3k/".
 ADMIN_URL = (env("ADMIN_URL", default="").strip("/") or "admin") + "/"
 
@@ -175,7 +183,7 @@ EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
 EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=15)
 EMAIL_FILE_PATH = env("EMAIL_FILE_PATH", default=str(BASE_DIR / "logs" / "mail"))
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="Ijtimoiy Faollik <noreply@namdu.uz>")
-SITE_URL = env("SITE_URL", default="http://localhost:8000")
+SITE_URL = env("SITE_URL", default=f"https://{RENDER_EXTERNAL_HOSTNAME}" if RENDER_EXTERNAL_HOSTNAME else "http://localhost:8000")
 
 # --- Telegram ---
 TELEGRAM_BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", default="")
@@ -193,8 +201,16 @@ HEMIS_API_TOKEN = env("HEMIS_API_TOKEN", default="")
 HEMIS_TIMEOUT = env.int("HEMIS_TIMEOUT", default=15)
 if HEMIS_MODE not in ("live", "mock"):
     raise ImproperlyConfigured("HEMIS_MODE faqat 'live' yoki 'mock' bo'lishi mumkin.")
-if HEMIS_MODE == "mock" and not DEBUG:
-    raise ImproperlyConfigured("HEMIS_MODE=mock production (DEBUG=False) da ishlatilmaydi.")
+if HEMIS_MODE == "mock" and not (DEBUG or DEMO_SITE):
+    raise ImproperlyConfigured("HEMIS_MODE=mock production (DEBUG=False) da ishlatilmaydi (faqat DEMO_SITE=True namoyish saytida).")
+
+# --- Mijoz IP manzili (kirish cheklovi va audit uchun) ---
+# x-real-ip: Nginx orqasida (deploy/nginx-socialpuls.conf). x-forwarded-for: Render kabi platformalarda;
+# PROXY_COUNT ta ishonchli proksi qo'shgan oxirgi yozuvlardan olinadi, mijoz yozgan boshlang'ich qismi e'tiborga olinmaydi.
+CLIENT_IP_SOURCE = env("CLIENT_IP_SOURCE", default="x-real-ip")
+PROXY_COUNT = env.int("PROXY_COUNT", default=1)
+if CLIENT_IP_SOURCE not in ("x-real-ip", "x-forwarded-for"):
+    raise ImproperlyConfigured("CLIENT_IP_SOURCE faqat 'x-real-ip' yoki 'x-forwarded-for' bo'lishi mumkin.")
 
 # --- Kirish urinishlarini cheklash ---
 LOGIN_MAX_ATTEMPTS = env.int("LOGIN_MAX_ATTEMPTS", default=5)

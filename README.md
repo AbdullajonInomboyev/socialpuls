@@ -6,6 +6,7 @@ Django 5.2, server tomonda render qilinadigan sahifalar, PostgreSQL (lokalda SQL
 Hujjatlar:
 
 * [docs/DEPLOY.md](docs/DEPLOY.md): production’ga o‘rnatish (Nginx, Gunicorn, PostgreSQL, HTTPS, cron, zaxira)
+* [docs/RENDER.md](docs/RENDER.md): Render’da namoyish (demo) sayti, demo loginlar va bepul tarif cheklovlari
 * [docs/HISOBOT.md](docs/HISOBOT.md): yakuniy hisobot (imkoniyatlar, fayllar, test natijalari, cheklovlar)
 
 ## Lokal ishga tushirish

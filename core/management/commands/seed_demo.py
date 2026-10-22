@@ -1,4 +1,4 @@
-"""Faqat ishlab chiqish uchun demo ma'lumotlar (DEBUG=True bo'lganda ishlaydi)."""
+"""Demo ma'lumotlar: faqat ishlab chiqishda (DEBUG=True) yoki namoyish saytida (DEMO_SITE=True) ishlaydi."""
 import io
 import random
 from datetime import date, timedelta
@@ -89,16 +89,42 @@ def certificate_pdf(title, name, when):
     return buf.getvalue()
 
 
+def restore_missing_files():
+    """Disk tozalangan bo'lsa (bepul hosting qayta ishga tushganda), demo sertifikatlarni qayta chizadi."""
+    restored = 0
+    files = AchievementFile.objects.filter(original_name__startswith="sertifikat.").select_related("achievement__student")
+    for f in files.iterator():
+        if f.file.storage.exists(f.file.name):
+            continue
+        a = f.achievement
+        if f.content_type == "application/pdf":
+            data = certificate_pdf(a.title, a.student.full_name, a.event_date)
+        else:
+            data = certificate_png(a.title, a.student.full_name, a.event_date)
+        f.file.storage.save(f.file.name, ContentFile(data))
+        restored += 1
+    return restored
+
+
 class Command(BaseCommand):
-    help = "Demo ma'lumotlar yaratadi (faqat DEBUG=True)."
+    help = "Demo ma'lumotlar yaratadi (faqat DEBUG=True yoki DEMO_SITE=True)."
 
     def add_arguments(self, parser):
         parser.add_argument("--students", type=int, default=72)
+        parser.add_argument(
+            "--if-empty", action="store_true",
+            help="Talabalar bor bo'lsa yangisini qo'shmaydi, faqat yo'qolgan demo hujjat fayllarini tiklaydi "
+                 "(diski saqlanmaydigan bepul hostingda har ishga tushishda chaqiriladi).",
+        )
 
     @transaction.atomic
     def handle(self, *args, **opts):
-        if not settings.DEBUG:
-            raise CommandError("seed_demo faqat DEBUG=True muhitida ishlaydi.")
+        if not (settings.DEBUG or settings.DEMO_SITE):
+            raise CommandError("seed_demo faqat DEBUG=True yoki DEMO_SITE=True muhitida ishlaydi.")
+        if opts["if_empty"] and StudentProfile.objects.exists():
+            restored = restore_missing_files()
+            self.stdout.write(f"Demo ma'lumotlar allaqachon bor; tiklangan fayllar: {restored}.")
+            return
         rnd = random.Random(2026)
 
         y1, _ = AcademicYear.objects.get_or_create(name="2025-2026", defaults={"start_date": date(2025, 9, 1), "end_date": date(2026, 6, 30)})
