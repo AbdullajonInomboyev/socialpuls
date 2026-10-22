@@ -6,6 +6,7 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.core.files.base import ContentFile
+from django.contrib.auth.hashers import make_password
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
@@ -62,7 +63,7 @@ def certificate_png(title, name, when):
     d.multiline_text((450, 395), _ascii(title)[:60], fill="#1E293B", font=mid, anchor="mm", align="center")
     d.text((450, 520), f"Namangan, {when:%d.%m.%Y}   |   DEMO HUJJAT", fill="#94A3B8", font=small, anchor="mm")
     buf = io.BytesIO()
-    img.save(buf, "PNG", optimize=True)
+    img.save(buf, "PNG", compress_level=1)  # tez; demo surat hajmi muhim emas
     return buf.getvalue()
 
 
@@ -127,10 +128,12 @@ class Command(BaseCommand):
                     )
                     groups.append(grp)
 
+        demo_hash = make_password(DEMO_PASSWORD)  # bir marta hisoblanadi, barcha demo xodimlarga beriladi
+
         def staff(username, first, last, role, faculty=None):
             u, created = User.objects.get_or_create(username=username, defaults={"first_name": first, "last_name": last, "role": role, "faculty": faculty, "email": f"{username}@namdu.uz"})
             if created:
-                u.set_password(DEMO_PASSWORD)
+                u.password = demo_hash
                 u.save()
             return u
 
@@ -182,7 +185,10 @@ class Command(BaseCommand):
             if activity < 0.25:
                 Notification.objects.create(recipient=user, kind="reminder", title="Sentyabr oyida yutuq yuklamadingiz", body="Reytingda ishtirokingiz past bo‘lishi mumkin. Yutuqlaringizni yuklashni unutmang.")
 
+        self.stdout.write(f"Talabalar va yutuqlar yaratilmoqda ({opts['students']} ta)...")
         for n in range(existing, existing + opts["students"]):
+            if n > existing and (n - existing) % 12 == 0:
+                self.stdout.write(f"  {n - existing}/{opts['students']}")
             gender = rnd.choice("mf")
             first = rnd.choice(MALE if gender == "m" else FEMALE)
             last = rnd.choice(LAST)
