@@ -112,6 +112,13 @@ AUTHENTICATION_BACKENDS = [
     "accounts.backends.StaffBackend",
     "accounts.backends.HemisStudentBackend",
 ]
+# Namoyish saytida umumiy parollar (.env / Render Environment orqali beriladi, kodda saqlanmaydi):
+# talabalar DEMO_STUDENT_PASSWORD bilan HEMIS ID orqali kiradi; xodimlar parollari `apply_demo_passwords` buyrug'i bilan o'rnatiladi.
+DEMO_STUDENT_PASSWORD = env("DEMO_STUDENT_PASSWORD", default="")
+DEMO_STAFF_PASSWORD = env("DEMO_STAFF_PASSWORD", default="")
+DEMO_TUTOR_PASSWORD = env("DEMO_TUTOR_PASSWORD", default="")
+if DEMO_SITE and DEMO_STUDENT_PASSWORD:
+    AUTHENTICATION_BACKENDS.append("accounts.backends.DemoStudentBackend")
 LOGIN_URL = "accounts:login"
 LOGIN_REDIRECT_URL = "core:home"
 LOGOUT_REDIRECT_URL = "accounts:login"

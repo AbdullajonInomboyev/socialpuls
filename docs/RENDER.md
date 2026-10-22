@@ -14,18 +14,18 @@ demo loginlar yoziladi. Haqiqiy foydalanish uchun `docs/DEPLOY.md` dagi server y
 
 `SECRET_KEY` ni Render o‘zi yaratadi; `.env` fayli kerak emas, barcha sozlamalar `render.yaml` da.
 
-## Demo loginlar
+## Loginlar va parollar
 
-| Kim | Login | Parol |
+Parollar kodda emas, Render → **Environment** da turadi va har ishga tushishda qo‘llanadi:
+
+| O‘zgaruvchi | Kimga | Login |
 | --- | --- | --- |
-| Rahbariyat | `rahbar` | `Puls-demo-2026` |
-| Moderator | `moderator` | `Puls-demo-2026` |
-| Fakultet mas’uli | `dekan_iqt`, `dekan_fil` | `Puls-demo-2026` |
-| Tyutor | `tyutor` | `Puls-demo-2026` |
-| Talaba (Filologiya) | `309251104207` | `hemis-demo` |
-| Talaba (Iqtisodiyot) | `309251104208` | `hemis-demo` |
+| `DEMO_STUDENT_PASSWORD` | barcha talabalar | HEMIS ID (masalan `309251104207`), “Talaba” yorlig‘i |
+| `DEMO_STAFF_PASSWORD` | rahbar, moderator, fakultet mas’ullari | `rahbar`, `moderator`, `dekan_iqt`, `dekan_fil`, `dekan_fm`, `dekan_tib`, `dekan_ijf`, “Xodim” yorlig‘i |
+| `DEMO_TUTOR_PASSWORD` | tyutorlar | `tyutor`, “Xodim” yorlig‘i |
 
-Xodimlar “Xodim” yorlig‘idan, talabalar “Talaba” yorlig‘idan kiradi.
+Parolni o‘zgartirish uchun qiymatni Environment’da almashtiring va “Save, rebuild, and deploy” ni bosing. Bu o‘zgaruvchilar
+faqat `DEMO_SITE=True` bo‘lganda ishlaydi. Kirish sahifasida loginlar ko‘rsatilmaydi.
 
 ## Bepul tarifning cheklovlari
 

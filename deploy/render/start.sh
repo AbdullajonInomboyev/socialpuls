@@ -3,6 +3,7 @@
 set -o errexit
 if [ "${DEMO_SITE:-False}" = "True" ]; then
   python manage.py seed_demo --if-empty
+  python manage.py apply_demo_passwords
 fi
 exec gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-10000}" --workers "${WEB_CONCURRENCY:-2}" \
   --timeout 60 --access-logfile -

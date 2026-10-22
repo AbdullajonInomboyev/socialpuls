@@ -9,11 +9,6 @@ from .nav import build_nav
 
 def site(request):
     ctx = {"site": SiteSettings.load(), "demo_site": settings.DEMO_SITE}
-    if settings.DEMO_SITE:
-        from core.management.commands.seed_demo import DEMO_PASSWORD
-        from hemis.mock import MOCK_PASSWORD, MOCK_STUDENTS
-
-        ctx["demo_logins"] = {"staff_password": DEMO_PASSWORD, "students": list(MOCK_STUDENTS), "student_password": MOCK_PASSWORD}
     user = getattr(request, "user", None)
     if user is not None and user.is_authenticated:
         groups, bottom = build_nav(user)

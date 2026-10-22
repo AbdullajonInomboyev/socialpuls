@@ -4,7 +4,7 @@
 <div class="auth">
   <button class="icon-btn theme-toggle" type="button" data-theme-toggle aria-label="Rang rejimini almashtirish">{% icon "moon" %}</button>
   <main class="auth-card" id="main">
-    <img class="logo" src="{% static 'img/logo.svg' %}" alt="{{ site.university_name }}" width="64" height="64">
+    <img class="logo" src="{% static 'img/logo.png' %}" alt="{{ site.university_name }}" width="64" height="64">
     <h1>{{ site.system_name|brand_first }} <b>{{ site.system_name|brand_rest }}</b></h1>
     <p class="intro">{% if mode == "staff" %}Boshqaruv paneliga xush kelibsiz{% else %}HEMIS login va parolingiz bilan kiring{% endif %}</p>
 
@@ -13,11 +13,6 @@
       <a href="{% url 'accounts:login' %}?xodim=1{% if next %}&next={{ next|urlencode }}{% endif %}"{% if mode == "staff" %} aria-current="page"{% endif %}>Xodim</a>
     </nav>
 
-    {% if demo_site %}
-    <div class="alert alert-warning demo-logins">{% icon "info" %}<span><b>Namoyish versiyasi.</b> Ma’lumotlar sinov uchun.
-      {% if mode == "staff" %}Login: rahbar, moderator, dekan_iqt, dekan_fil yoki tyutor; parol: <code>{{ demo_logins.staff_password }}</code>
-      {% else %}HEMIS ID: {% for s in demo_logins.students %}<code>{{ s }}</code>{% if not forloop.last %} yoki {% endif %}{% endfor %}; parol: <code>{{ demo_logins.student_password }}</code>{% endif %}</span></div>
-    {% endif %}
     {% if locked %}
     <div class="alert alert-error" role="alert">{% icon "lock" %}<span>Juda ko‘p noto‘g‘ri urinish bo‘ldi. 15 daqiqadan keyin qayta urinib ko‘ring.</span></div>
     {% endif %}

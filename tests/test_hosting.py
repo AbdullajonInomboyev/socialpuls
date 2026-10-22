@@ -37,14 +37,36 @@ class DemoSiteTests(TestCase):
     def setUp(self):
         cache.clear()
 
-    def test_login_shows_demo_logins_only_on_demo_site(self):
-        r = self.client.get(reverse("accounts:login"))
-        self.assertNotContains(r, "Namoyish versiyasi")
+    def test_login_page_has_no_demo_credentials(self):
         with override_settings(DEMO_SITE=True):
             r = self.client.get(reverse("accounts:login"))
-            self.assertContains(r, "Namoyish versiyasi")
-            self.assertContains(r, "hemis-demo")
-            self.assertContains(self.client.get(reverse("accounts:login") + "?xodim=1"), "Puls-demo-2026")
+            self.assertNotContains(r, "hemis-demo")
+            self.assertNotContains(r, "Puls-demo-2026")
+
+    def test_demo_passwords(self):
+        from django.contrib.auth import authenticate
+
+        from accounts.models import Role
+        from tests.factories import make_staff, make_structure, make_student
+
+        s = make_structure()
+        student = make_student("309251100099", s["g1"])
+        dean = make_staff("dekan9", Role.FACULTY_ADMIN, faculty=s["f1"])
+        tutor = make_staff("tyutor9", Role.TUTOR, groups=[s["g1"]])
+        backends = ["accounts.backends.StaffBackend", "accounts.backends.DemoStudentBackend"]
+        with override_settings(DEMO_SITE=True, DEMO_STUDENT_PASSWORD="talaba-x1", DEMO_STAFF_PASSWORD="xodim-x1",
+                               DEMO_TUTOR_PASSWORD="tyutor-x1", AUTHENTICATION_BACKENDS=backends):
+            self.assertEqual(authenticate(hemis_login="309251100099", hemis_password="talaba-x1"), student)
+            self.assertIsNone(authenticate(hemis_login="309251100099", hemis_password="boshqa"))
+            self.assertIsNone(authenticate(hemis_login="dekan9", hemis_password="talaba-x1"))
+            call_command("apply_demo_passwords", stdout=StringIO())
+            self.assertEqual(authenticate(username="dekan9", password="xodim-x1"), dean)
+            self.assertEqual(authenticate(username="tyutor9", password="tyutor-x1"), tutor)
+            self.assertIsNone(authenticate(username="tyutor9", password="xodim-x1"))
+        with override_settings(DEMO_SITE=False, DEMO_STUDENT_PASSWORD="talaba-x1", AUTHENTICATION_BACKENDS=backends):
+            self.assertIsNone(authenticate(hemis_login="309251100099", hemis_password="talaba-x1"))
+            with self.assertRaises(CommandError):
+                call_command("apply_demo_passwords", stdout=StringIO())
 
     @override_settings(DEBUG=False, DEMO_SITE=False)
     def test_seed_refused_outside_demo(self):

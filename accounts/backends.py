@@ -1,6 +1,8 @@
 import logging
 
+from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
+from django.utils.crypto import constant_time_compare
 
 from hemis.client import HemisAuthError, HemisUnavailable, get_student_client
 from hemis.services import upsert_student
@@ -50,3 +52,16 @@ class HemisStudentBackend(ModelBackend):
             return User.objects.get(pk=user_id)
         except User.DoesNotExist:
             return None
+
+
+class DemoStudentBackend(ModelBackend):
+    """Faqat namoyish saytida (DEMO_SITE): bazadagi har bir talaba HEMIS ID va umumiy DEMO_STUDENT_PASSWORD bilan kiradi."""
+
+    def authenticate(self, request, hemis_login=None, hemis_password=None, **kwargs):
+        expected = settings.DEMO_STUDENT_PASSWORD
+        if not (settings.DEMO_SITE and expected and hemis_login and hemis_password):
+            return None
+        if not constant_time_compare(hemis_password, expected):
+            return None
+        user = User.objects.filter(role=Role.STUDENT, hemis_id=hemis_login.strip()).first()
+        return user if user is not None and self.user_can_authenticate(user) else None
